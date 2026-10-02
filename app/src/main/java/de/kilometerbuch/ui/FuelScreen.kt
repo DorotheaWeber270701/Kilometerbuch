@@ -13,22 +13,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,10 +40,8 @@ import de.kilometerbuch.data.parseDecimal
 import de.kilometerbuch.ui.theme.KilometerTheme
 import de.kilometerbuch.ui.theme.allCarsColor
 import de.kilometerbuch.ui.theme.carColor
-import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneOffset
 import java.util.UUID
 
 /** Seite „Tanken“. [selectedCar] ist null in der Gesamtansicht über alle Autos. */
@@ -233,10 +222,6 @@ private fun ReceiptRow(receipt: FuelReceipt, car: Car?, onClick: () -> Unit) {
     }
 }
 
-private fun LocalDate.toUtcMillis() = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-private fun utcMillisToDate(ms: Long) = Instant.ofEpochMilli(ms).atZone(ZoneOffset.UTC).toLocalDate()
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiptDialog(
     original: FuelReceipt?,
@@ -247,11 +232,10 @@ fun ReceiptDialog(
     onDelete: () -> Unit,
 ) {
     var carId by remember { mutableStateOf(original?.carId ?: initialCarId) }
-    var date by remember { mutableStateOf(original?.date ?: LocalDate.now()) }
+    var date by remember { mutableStateOf<LocalDate?>(original?.date ?: LocalDate.now()) }
     var litersText by remember { mutableStateOf(original?.liters?.let(::decimalInput) ?: "") }
     var totalText by remember { mutableStateOf(original?.total?.let(::decimalInput) ?: "") }
     var showErrors by remember { mutableStateOf(false) }
-    var pickingDate by remember { mutableStateOf(false) }
 
     val liters = parseDecimal(litersText)
     val total = parseDecimal(totalText)
@@ -265,6 +249,7 @@ fun ReceiptDialog(
         total == null || total !in TOTAL_RANGE -> "Bitte einen Betrag zwischen 0,50 und 2.000 € eingeben, z. B. 76,03."
         else -> null
     }
+    val today = LocalDate.now()
     val price = if (litersError == null && totalError == null && liters != null && total != null) total / liters else null
 
     AlertDialog(
@@ -273,11 +258,14 @@ fun ReceiptDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CarPicker(cars, carId) { carId = it }
-                OutlinedButton(onClick = { pickingDate = true }, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Filled.DateRange, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(fmtDate(date))
-                }
+                DateField(
+                    value = date,
+                    onValueChange = { date = it },
+                    label = "Datum",
+                    showErrors = showErrors,
+                    validate = { if (it.isAfter(today)) "Das Datum liegt in der Zukunft." else null },
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 OutlinedTextField(
                     value = litersText,
                     onValueChange = { litersText = it },
@@ -325,8 +313,9 @@ fun ReceiptDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                if (liters != null && total != null && litersError == null && totalError == null) {
-                    onSave(FuelReceipt(original?.id ?: UUID.randomUUID().toString(), carId, date, liters, total))
+                val day = date
+                if (day != null && !day.isAfter(today) && liters != null && total != null && litersError == null && totalError == null) {
+                    onSave(FuelReceipt(original?.id ?: UUID.randomUUID().toString(), carId, day, liters, total))
                 } else {
                     showErrors = true
                 }
@@ -343,28 +332,6 @@ fun ReceiptDialog(
             }
         },
     )
-
-    if (pickingDate) {
-        val todayMillis = LocalDate.now().toUtcMillis()
-        val pickerState = rememberDatePickerState(
-            initialSelectedDateMillis = date.toUtcMillis(),
-            selectableDates = object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= todayMillis
-            },
-        )
-        DatePickerDialog(
-            onDismissRequest = { pickingDate = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { date = utcMillisToDate(it) }
-                    pickingDate = false
-                }) { Text("OK") }
-            },
-            dismissButton = { TextButton(onClick = { pickingDate = false }) { Text("Abbrechen") } },
-        ) {
-            DatePicker(state = pickerState)
-        }
-    }
 }
 
 // --- Vorschau in Android Studio (Split/Design-Ansicht), nur mit Beispieldaten ---

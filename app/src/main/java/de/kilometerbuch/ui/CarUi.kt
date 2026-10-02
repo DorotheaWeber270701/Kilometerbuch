@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -42,11 +45,15 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.kilometerbuch.R
 import de.kilometerbuch.data.Car
+import de.kilometerbuch.data.ODOMETER_RANGE
+import de.kilometerbuch.data.parseKm
 import de.kilometerbuch.ui.theme.carColor
 
 /** Auswahl „Alle Autos“ für die Gesamtansicht. */
@@ -178,60 +185,142 @@ fun BreakdownCard(title: String, rows: List<BreakdownRow>) {
     }
 }
 
-/** Auto anlegen oder umbenennen. [original] ist null für ein neues Auto. */
+/** Ergebnis des Auto-Formulars; Kilometerstand und Baujahr sind optional. */
+data class CarInput(val name: String, val odometerKm: Int?, val buildYear: Int?)
+
+/** Eingaben und Prüfung für Name, Kilometerstand und Baujahr eines Autos. */
+class CarFormState(name: String, odometer: Int?, buildYear: Int?) {
+    var name by mutableStateOf(name)
+    var odometerText by mutableStateOf(odometer?.toString() ?: "")
+    var buildYearText by mutableStateOf(buildYear?.toString() ?: "")
+
+    private val thisYear = java.time.Year.now().value
+    private val odometer get() = if (odometerText.isBlank()) null else parseKm(odometerText)
+    private val buildYear get() = buildYearText.trim().toIntOrNull()
+
+    fun nameError(cars: List<Car>, ownId: String?): String? {
+        val trimmed = name.trim()
+        return when {
+            trimmed.isEmpty() -> "Bitte einen Namen eingeben, z. B. „Golf“ oder „Firmenwagen“."
+            trimmed.length > 30 -> "Bitte höchstens 30 Zeichen verwenden."
+            cars.any { it.id != ownId && it.name.equals(trimmed, ignoreCase = true) } -> "Es gibt schon ein Auto mit diesem Namen."
+            else -> null
+        }
+    }
+
+    val odometerError: String?
+        get() = if (odometerText.isNotBlank() && odometer?.let { it in ODOMETER_RANGE } != true) {
+            "Bitte eine ganze Zahl eingeben, z. B. 48.300."
+        } else {
+            null
+        }
+
+    val buildYearError: String?
+        get() = if (buildYearText.isNotBlank() && buildYear?.let { it in 1950..thisYear } != true) {
+            "Bitte ein Jahr zwischen 1950 und $thisYear eingeben."
+        } else {
+            null
+        }
+
+    /** Das Ergebnis, oder null, solange etwas nicht stimmt. */
+    fun toInput(cars: List<Car>, ownId: String?): CarInput? =
+        if (nameError(cars, ownId) == null && odometerError == null && buildYearError == null) {
+            CarInput(name.trim(), odometer, buildYear)
+        } else {
+            null
+        }
+}
+
+/** Die Felder für ein Auto; [hasOdometer] steuert nur den Hinweistext unter dem Kilometerstand. */
+@Composable
+fun CarFields(
+    state: CarFormState,
+    cars: List<Car>,
+    ownId: String?,
+    showErrors: Boolean,
+    hasOdometer: Boolean = false,
+) {
+    val nameError = state.nameError(cars, ownId)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = state.name,
+            onValueChange = { state.name = it },
+            label = { Text("Name") },
+            placeholder = { Text("z. B. Golf") },
+            singleLine = true,
+            isError = showErrors && nameError != null,
+            supportingText = if (showErrors && nameError != null) {
+                { Text(nameError) }
+            } else {
+                null
+            },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            value = state.odometerText,
+            onValueChange = { state.odometerText = it },
+            label = { Text("Kilometerstand (optional)") },
+            suffix = { Text("km") },
+            singleLine = true,
+            isError = state.odometerError != null,
+            supportingText = {
+                Text(
+                    state.odometerError ?: if (hasOdometer) {
+                        "Wird mit deinen Monatskilometern fortgeschrieben."
+                    } else {
+                        "Für Inspektion und Zahnriemen. Danach zählt die App selbst weiter."
+                    },
+                )
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            value = state.buildYearText,
+            onValueChange = { state.buildYearText = it.filter(Char::isDigit).take(4) },
+            label = { Text("Baujahr (optional)") },
+            singleLine = true,
+            isError = state.buildYearError != null,
+            supportingText = state.buildYearError?.let { { Text(it) } },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+/**
+ * Auto anlegen oder bearbeiten. [original] ist null für ein neues Auto.
+ * [currentOdometer] ist der fortgeschriebene Kilometerstand, der beim Bearbeiten vorbelegt wird.
+ */
 @Composable
 fun CarDialog(
     original: Car?,
     cars: List<Car>,
+    currentOdometer: Int?,
     onDismiss: () -> Unit,
-    onSave: (String) -> Unit,
+    onSave: (CarInput) -> Unit,
     onDelete: () -> Unit,
 ) {
-    var name by remember { mutableStateOf(original?.name ?: "") }
+    val form = remember { CarFormState(original?.name ?: "", currentOdometer, original?.buildYear) }
     var showErrors by remember { mutableStateOf(false) }
-    val trimmed = name.trim()
-    val error = when {
-        trimmed.isEmpty() -> "Bitte einen Namen eingeben, z. B. „Golf“ oder „Firmenwagen“."
-        trimmed.length > 30 -> "Bitte höchstens 30 Zeichen verwenden."
-        cars.any { it.id != original?.id && it.name.equals(trimmed, ignoreCase = true) } ->
-            "Es gibt schon ein Auto mit diesem Namen."
-        else -> null
-    }
-    val canDelete = original != null && cars.size > 1
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (original == null) "Auto hinzufügen" else "Auto bearbeiten") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    singleLine = true,
-                    isError = showErrors && error != null,
-                    supportingText = if (showErrors && error != null) {
-                        { Text(error) }
-                    } else {
-                        null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (original != null && cars.size == 1) {
-                    Text(
-                        "Das einzige Auto kann nicht gelöscht werden.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                CarFields(form, cars, original?.id, showErrors, hasOdometer = original?.odometerKm != null)
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (error == null) onSave(trimmed) else showErrors = true }) { Text("Speichern") }
+            TextButton(onClick = { form.toInput(cars, original?.id)?.let(onSave) ?: run { showErrors = true } }) {
+                Text("Speichern")
+            }
         },
         dismissButton = {
             Row {
-                if (canDelete) {
+                if (original != null) {
                     TextButton(onClick = onDelete) {
                         Text("Löschen", color = MaterialTheme.colorScheme.error)
                     }

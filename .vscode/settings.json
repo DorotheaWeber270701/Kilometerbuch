@@ -1,3 +1,7 @@
 {
-    "java.import.gradle.enabled": false
+    // Das Projekt wird mit Android Studio gebaut. VS Code soll Gradle hier nicht starten,
+    // sonst sperren sich beide gegenseitig die Gradle-Caches.
+    "java.import.gradle.enabled": false,
+    "java.gradle.buildServer.enabled": "off",
+    "gradle.autoDetect": "off"
 }

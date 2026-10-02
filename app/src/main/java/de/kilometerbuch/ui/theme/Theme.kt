@@ -8,20 +8,41 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+/** Hell oder dunkel, wie in der App gewählt; nicht unbedingt wie im System. */
+val LocalDarkTheme = staticCompositionLocalOf { false }
+
+/** Darstellung, wie im Menü gewählt. */
+enum class ThemeMode(val label: String) {
+    SYSTEM("System"),
+    LIGHT("Hell"),
+    DARK("Dunkel"),
+}
+
 @Composable
-fun KilometerTheme(content: @Composable () -> Unit) {
-    val dark = isSystemInDarkTheme()
+fun ThemeMode.isDark(): Boolean = when (this) {
+    ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    ThemeMode.LIGHT -> false
+    ThemeMode.DARK -> true
+}
+
+@Composable
+fun KilometerTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val context = LocalContext.current
     val scheme = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-            if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        dark -> darkColorScheme(primary = Color(0xFF8AB4F2))
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        darkTheme -> darkColorScheme(primary = Color(0xFF8AB4F2))
         else -> lightColorScheme(primary = Color(0xFF1F62B4))
     }
-    MaterialTheme(colorScheme = scheme, content = content)
+    CompositionLocalProvider(LocalDarkTheme provides darkTheme) {
+        MaterialTheme(colorScheme = scheme, content = content)
+    }
 }
 
 // Feste Autofarben in fester Reihenfolge, für hellen und dunklen Hintergrund getrennt abgestimmt.
@@ -33,8 +54,9 @@ private val CAR_COLORS_DARK = listOf(
 )
 
 @Composable
+@ReadOnlyComposable
 fun carColor(index: Int): Color {
-    val palette = if (isSystemInDarkTheme()) CAR_COLORS_DARK else CAR_COLORS_LIGHT
+    val palette = if (LocalDarkTheme.current) CAR_COLORS_DARK else CAR_COLORS_LIGHT
     return Color(palette[index.mod(palette.size)])
 }
 
