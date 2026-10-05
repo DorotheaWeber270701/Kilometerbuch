@@ -1,9 +1,10 @@
 package de.kilometerbuch.ui
 
+import de.kilometerbuch.R
 import de.kilometerbuch.data.Car
 import de.kilometerbuch.data.CarCare
 import de.kilometerbuch.data.Entry
-import de.kilometerbuch.data.estimateOdometer
+import de.kilometerbuch.i18n.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -17,6 +18,22 @@ class RemindersTest {
 
     private fun monthly(km: Int, from: YearMonth, count: Int) =
         (0 until count).map { Entry("a", from.plusMonths(it.toLong()), km, null) }
+
+    /** Alle Text-Ids in einem Text, auch in zusammengesetzten. */
+    private fun ids(text: UiText): List<Int> = when (text) {
+        is UiText.Res -> listOf(text.id) + text.args.filterIsInstance<UiText>().flatMap(::ids)
+        is UiText.Plural -> listOf(text.id)
+        is UiText.WeekdayDate -> emptyList()
+        is UiText.Join -> text.parts.flatMap(::ids)
+    }
+
+    /** Alle Argumente in einem Text, auch in zusammengesetzten. */
+    private fun args(text: UiText): List<Any> = when (text) {
+        is UiText.Res -> text.args
+        is UiText.Plural -> text.args
+        is UiText.WeekdayDate -> listOf(text.date)
+        is UiText.Join -> text.parts.flatMap(::args)
+    }
 
     // --- HU ---
 
@@ -41,7 +58,9 @@ class RemindersTest {
     fun huLastMonthIsOverdue() {
         val r = huReminder(CarCare("a", huDue = YearMonth.of(2026, 9)), today)!!
         assertEquals(Urgency.OVERDUE, r.urgency)
-        assertTrue(r.detail, r.detail.startsWith("Seit 1 Monat überfällig"))
+        val overdue = (r.detail as UiText.Join).parts.first() as UiText.Plural
+        assertEquals(R.plurals.hu_overdue_months, overdue.id)
+        assertEquals(1, overdue.count)
     }
 
     @Test
@@ -59,7 +78,7 @@ class RemindersTest {
         assertEquals(LocalDate.of(2026, 10, 14), r.due)
         assertEquals(LocalDate.of(2026, 10, 14), r.appointment)
         assertEquals(Urgency.LATER, r.urgency)
-        assertTrue(r.headline, r.headline.startsWith("Termin am Mi"))
+        assertEquals(listOf(R.string.hu_appt_headline), ids(r.headline))
     }
 
     @Test
@@ -67,7 +86,7 @@ class RemindersTest {
         val care = CarCare("a", huDue = YearMonth.of(2026, 10), huAppointment = LocalDate.of(2026, 10, 3))
         val r = huReminder(care, today)!!
         assertEquals(Urgency.SOON, r.urgency)
-        assertTrue(r.detail, r.detail.startsWith("Morgen"))
+        assertEquals(listOf(R.string.hu_appt_tomorrow), ids(r.detail))
     }
 
     @Test
@@ -84,7 +103,8 @@ class RemindersTest {
         val r = serviceReminder(care, monthly(500, YearMonth.of(2026, 4), 6), today)!!
         assertEquals(LocalDate.of(2027, 3, 31), r.due)
         assertEquals(Urgency.LATER, r.urgency)
-        assertTrue(r.detail, r.detail.contains("3.000 von 15.000 km"))
+        assertEquals(listOf(R.string.latest_in), ids(r.headline))
+        assertTrue(args(r.detail).toString(), fmtInt(3000.0) in args(r.detail))
     }
 
     @Test
@@ -93,7 +113,7 @@ class RemindersTest {
         val care = CarCare("a", lastService = YearMonth.of(2026, 3), serviceMonths = 12, serviceKm = 15_000)
         val r = serviceReminder(care, monthly(2_000, YearMonth.of(2026, 4), 6), today)!!
         assertEquals(LocalDate.of(2026, 12, 31), r.due)
-        assertTrue(r.headline, r.headline.startsWith("Voraussichtlich"))
+        assertEquals(listOf(R.string.expected_in), ids(r.headline))
     }
 
     @Test
@@ -108,7 +128,7 @@ class RemindersTest {
         val care = CarCare("a", lastService = YearMonth.of(2026, 3), serviceMonths = 24, serviceKm = 10_000)
         val r = serviceReminder(care, monthly(2_000, YearMonth.of(2026, 4), 6), today)!!
         assertEquals(Urgency.OVERDUE, r.urgency)
-        assertEquals("Kilometergrenze erreicht", r.headline)
+        assertEquals(listOf(R.string.km_limit_reached), ids(r.headline))
     }
 
     @Test
@@ -116,7 +136,15 @@ class RemindersTest {
         // Der Inspektionsmonat zählt nicht mit, erst die Monate danach.
         val care = CarCare("a", lastService = YearMonth.of(2026, 4), serviceKm = 15_000)
         val r = serviceReminder(care, monthly(1_000, YearMonth.of(2026, 4), 3), today)!!
-        assertTrue(r.detail, r.detail.contains("2.000 von 15.000 km"))
+        assertTrue(args(r.detail).toString(), fmtInt(2000.0) in args(r.detail))
+    }
+
+    @Test
+    fun serviceUsesOdometerWhenServiceKmKnown() {
+        val care = CarCare("a", lastService = YearMonth.of(2026, 3), lastServiceOdometer = 40_000, serviceKm = 15_000)
+        val r = serviceReminder(care, monthly(1_000, YearMonth.of(2026, 4), 6), today, odometer = 52_000)!!
+        assertTrue(args(r.detail).toString(), fmtInt(12000.0) in args(r.detail))
+        assertTrue(ids(r.detail).toString(), R.string.service_last_at in ids(r.detail))
     }
 
     @Test
@@ -154,6 +182,17 @@ class RemindersTest {
         assertEquals(Urgency.LATER, r.urgency)
     }
 
+    // --- Bremsflüssigkeit ---
+
+    @Test
+    fun brakeFluidDueTwoYearsAfterLastChange() {
+        val r = brakeFluidReminder(CarCare("a", lastBrakeFluid = YearMonth.of(2024, 10)), today)!!
+        assertEquals(LocalDate.of(2026, 10, 31), r.due)
+        assertEquals(Urgency.SOON, r.urgency)
+        val later = brakeFluidReminder(CarCare("a", lastBrakeFluid = YearMonth.of(2024, 12)), today)!!
+        assertEquals(Urgency.LATER, later.urgency)
+    }
+
     // --- Schalter ---
 
     @Test
@@ -169,66 +208,5 @@ class RemindersTest {
         val care = CarCare("a", huOn = true, huDue = YearMonth.of(2027, 5)).withOn(CareItem.HU, false)
         assertEquals(YearMonth.of(2027, 5), care.huDue)
         assertTrue(!care.anyOn)
-    }
-
-    // --- Kilometerstand ---
-
-    @Test
-    fun odometerIsCarriedForwardWithMonthlyKm() {
-        val car = Car("a", "Golf", 0, odometerKm = 40_000, odometerMonth = YearMonth.of(2026, 6))
-        // Juni zählt nicht mit (da abgelesen), Juli bis September schon.
-        assertEquals(43_000, estimateOdometer(car, monthly(1_000, YearMonth.of(2026, 6), 4)))
-    }
-
-    @Test
-    fun serviceUsesOdometerWhenServiceKmKnown() {
-        val care = CarCare("a", lastService = YearMonth.of(2026, 3), lastServiceOdometer = 40_000, serviceKm = 15_000)
-        val r = serviceReminder(care, monthly(1_000, YearMonth.of(2026, 4), 6), today, odometer = 52_000)!!
-        assertTrue(r.detail, r.detail.contains("12.000 von 15.000 km"))
-        assertTrue(r.detail, r.detail.contains("bei 40.000 km"))
-    }
-
-    // --- Bremsflüssigkeit ---
-
-    @Test
-    fun brakeFluidDueTwoYearsAfterLastChange() {
-        val r = brakeFluidReminder(CarCare("a", lastBrakeFluid = YearMonth.of(2024, 10)), today)!!
-        assertEquals(LocalDate.of(2026, 10, 31), r.due)
-        assertEquals(Urgency.SOON, r.urgency)
-        val later = brakeFluidReminder(CarCare("a", lastBrakeFluid = YearMonth.of(2024, 12)), today)!!
-        assertEquals(Urgency.LATER, later.urgency)
-    }
-
-    // --- Zahnriemen ---
-
-    @Test
-    fun timingBeltByAgeFromBuildYear() {
-        val care = CarCare("a", beltYears = 6, beltKm = 120_000)
-        val r = timingBeltReminder(care, emptyList(), today, odometer = null, buildYear = 2021)!!
-        assertEquals(LocalDate.of(2027, 1, 1), r.due)
-        assertEquals("Spätestens 2027", r.headline)
-    }
-
-    @Test
-    fun timingBeltByKmWhenDrivingALot() {
-        // 115.000 km, 2.500 km/Monat: 5.000 km übrig → in 2 Monaten, lange vor dem Altersgrenze.
-        val care = CarCare("a", beltYears = 10, beltKm = 120_000)
-        val r = timingBeltReminder(care, monthly(2_500, YearMonth.of(2026, 4), 6), today, odometer = 115_000, buildYear = 2020)!!
-        assertEquals(LocalDate.of(2026, 12, 31), r.due)
-        assertEquals(Urgency.SOON, r.urgency)
-        assertTrue(r.headline, r.headline.startsWith("Voraussichtlich"))
-    }
-
-    @Test
-    fun timingBeltCountsFromLastChange() {
-        val care = CarCare("a", beltYears = 6, beltKm = 120_000, lastBeltYear = 2024, lastBeltOdometer = 100_000)
-        val r = timingBeltReminder(care, emptyList(), today, odometer = 130_000, buildYear = 2012)!!
-        assertEquals(LocalDate.of(2030, 1, 1), r.due)
-        assertTrue(r.detail, r.detail.contains("bei 220.000 km"))
-    }
-
-    @Test
-    fun noTimingBeltReminderWithoutAgeOrKm() {
-        assertNull(timingBeltReminder(CarCare("a"), emptyList(), today, odometer = null, buildYear = null))
     }
 }

@@ -1,6 +1,7 @@
 package de.kilometerbuch.ui.theme
 
 import android.os.Build
+import androidx.annotation.StringRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -13,15 +14,17 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import de.kilometerbuch.R
+import de.kilometerbuch.data.Car
 
 /** Hell oder dunkel, wie in der App gewählt; nicht unbedingt wie im System. */
 val LocalDarkTheme = staticCompositionLocalOf { false }
 
 /** Darstellung, wie im Menü gewählt. */
-enum class ThemeMode(val label: String) {
-    SYSTEM("System"),
-    LIGHT("Hell"),
-    DARK("Dunkel"),
+enum class ThemeMode(@StringRes val label: Int) {
+    SYSTEM(R.string.theme_system),
+    LIGHT(R.string.theme_light),
+    DARK(R.string.theme_dark),
 }
 
 @Composable
@@ -53,12 +56,18 @@ private val CAR_COLORS_DARK = listOf(
     0xFF3987E5, 0xFFD95926, 0xFF199E70, 0xFFC98500, 0xFFD55181, 0xFF008300, 0xFF9085E9, 0xFFE66767,
 )
 
+/** Palettenfarbe [index], passend zu hell oder dunkel. */
 @Composable
 @ReadOnlyComposable
-fun carColor(index: Int): Color {
+fun paletteColor(index: Int): Color {
     val palette = if (LocalDarkTheme.current) CAR_COLORS_DARK else CAR_COLORS_LIGHT
     return Color(palette[index.mod(palette.size)])
 }
+
+/** Farbe eines Autos: die eigene Farbe, sonst seine Palettenfarbe. */
+@Composable
+@ReadOnlyComposable
+fun carColor(car: Car): Color = car.customColor?.let { Color(it) } ?: paletteColor(car.colorIndex)
 
 /** Für Werte über alle Autos zusammen, damit sie keinem Auto zugeordnet wirken. */
 @Composable

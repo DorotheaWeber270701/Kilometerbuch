@@ -5,3 +5,8 @@ local.properties
 *.iml
 captures/
 .kotlin/
+
+# Signaturschlüssel für den Play Store: niemals ins Repository
+keystore/
+keystore.properties
+*.jks

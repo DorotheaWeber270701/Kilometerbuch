@@ -1,44 +1,29 @@
 package de.kilometerbuch.ui
 
+import androidx.annotation.StringRes
+import de.kilometerbuch.R
 import de.kilometerbuch.data.Car
 import de.kilometerbuch.data.CarCare
 import de.kilometerbuch.data.Entry
 import de.kilometerbuch.data.estimateOdometer
+import de.kilometerbuch.i18n.UiText
+import de.kilometerbuch.i18n.plural
+import de.kilometerbuch.i18n.text
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Locale
 import kotlin.math.ceil
 
 /** Die Erinnerungen, die man pro Auto ein- und ausschalten kann. */
-enum class CareItem(val title: String, val description: String, val needs: List<String>) {
-    HU(
-        "Hauptuntersuchung (TÜV)",
-        "Erinnert rechtzeitig vor dem Monat auf der Plakette. Einen gebuchten Termin kannst du eintragen, " +
-            "dann kommt die Erinnerung am Tag vorher.",
-        listOf("Monat auf der HU-Plakette"),
-    ),
+enum class CareItem(@StringRes val title: Int, @StringRes val description: Int, val needs: List<Int>) {
+    HU(R.string.care_hu_title, R.string.care_hu_desc, listOf(R.string.care_hu_need)),
     SERVICE(
-        "Inspektion",
-        "Nach Zeit oder Kilometern, je nachdem, was zuerst kommt. Die Kilometer kommen aus deinen Monatseinträgen.",
-        listOf("Monat der letzten Inspektion", "Intervall laut Serviceheft", "Optional: km-Stand bei der letzten Inspektion"),
+        R.string.care_service_title,
+        R.string.care_service_desc,
+        listOf(R.string.care_service_need_month, R.string.care_service_need_interval, R.string.care_service_need_odo),
     ),
-    TIRES(
-        "Reifenwechsel",
-        "Im Oktober Winterreifen, nach Ostern Sommerreifen (Faustregel „von O bis O“). Aus bei Ganzjahresreifen.",
-        emptyList(),
-    ),
-    BRAKE_FLUID(
-        "Bremsflüssigkeit",
-        "Bremsflüssigkeit zieht Wasser und muss meist alle 2 Jahre gewechselt werden, oft zusammen mit der Inspektion.",
-        listOf("Monat des letzten Wechsels"),
-    ),
-    TIMING_BELT(
-        "Zahnriemen",
-        "Nach Kilometern oder Jahren laut Hersteller. Nur bei Motoren mit Zahnriemen, nicht bei Steuerkette.",
-        listOf("Baujahr oder Jahr des letzten Wechsels", "Intervall laut Serviceheft", "Optional: Kilometerstand (genauer)"),
-    ),
+    TIRES(R.string.care_tires_title, R.string.care_tires_desc, emptyList()),
+    BRAKE_FLUID(R.string.care_brake_title, R.string.care_brake_desc, listOf(R.string.care_brake_need)),
 }
 
 fun CarCare.isOn(item: CareItem): Boolean = when (item) {
@@ -46,7 +31,6 @@ fun CarCare.isOn(item: CareItem): Boolean = when (item) {
     CareItem.SERVICE -> serviceOn
     CareItem.TIRES -> tiresOn
     CareItem.BRAKE_FLUID -> brakeOn
-    CareItem.TIMING_BELT -> beltOn
 }
 
 fun CarCare.withOn(item: CareItem, on: Boolean): CarCare = when (item) {
@@ -54,25 +38,22 @@ fun CarCare.withOn(item: CareItem, on: Boolean): CarCare = when (item) {
     CareItem.SERVICE -> copy(serviceOn = on)
     CareItem.TIRES -> copy(tiresOn = on)
     CareItem.BRAKE_FLUID -> copy(brakeOn = on)
-    CareItem.TIMING_BELT -> copy(beltOn = on)
 }
 
 /** Ob zum Einschalten noch Angaben fehlen; dann wird erst gefragt. */
-fun needsSetup(item: CareItem, care: CarCare, car: Car): Boolean = when (item) {
+fun needsSetup(item: CareItem, care: CarCare): Boolean = when (item) {
     CareItem.HU -> care.huDue == null
     CareItem.SERVICE -> care.lastService == null
     CareItem.TIRES -> false
     CareItem.BRAKE_FLUID -> care.lastBrakeFluid == null
-    CareItem.TIMING_BELT -> care.lastBeltYear == null && car.buildYear == null
 }
 
-enum class ReminderKind(val title: String, val item: CareItem) {
-    HU("Hauptuntersuchung (TÜV)", CareItem.HU),
-    SERVICE("Inspektion", CareItem.SERVICE),
-    WINTER_TIRES("Winterreifen aufziehen", CareItem.TIRES),
-    SUMMER_TIRES("Sommerreifen aufziehen", CareItem.TIRES),
-    BRAKE_FLUID("Bremsflüssigkeit wechseln", CareItem.BRAKE_FLUID),
-    TIMING_BELT("Zahnriemen wechseln", CareItem.TIMING_BELT),
+enum class ReminderKind(@StringRes val title: Int, val item: CareItem) {
+    HU(R.string.care_hu_title, CareItem.HU),
+    SERVICE(R.string.care_service_title, CareItem.SERVICE),
+    WINTER_TIRES(R.string.kind_winter_tires, CareItem.TIRES),
+    SUMMER_TIRES(R.string.kind_summer_tires, CareItem.TIRES),
+    BRAKE_FLUID(R.string.kind_brake_fluid, CareItem.BRAKE_FLUID),
 }
 
 enum class Urgency { OVERDUE, SOON, LATER }
@@ -82,8 +63,8 @@ data class Reminder(
     val kind: ReminderKind,
     val due: LocalDate,
     val urgency: Urgency,
-    val headline: String,
-    val detail: String,
+    val headline: UiText,
+    val detail: UiText,
     /** Nur beim Reifenwechsel: die Saison, die „Erledigt“ abhakt. */
     val seasonKey: String? = null,
     /** Nur bei der HU: der gebuchte Prüftermin. */
@@ -105,12 +86,14 @@ fun reminders(car: Car, care: CarCare, entries: List<Entry>, today: LocalDate): 
         if (care.serviceOn) serviceReminder(care, own, today, odometer) else null,
         if (care.tiresOn) tireReminder(care, today) else null,
         if (care.brakeOn) brakeFluidReminder(care, today) else null,
-        if (care.beltOn) timingBeltReminder(care, own, today, odometer, car.buildYear) else null,
     ).sortedBy { it.due }
 }
 
 /** Nach einer HU gilt die nächste 24 Monate ab dem Prüfmonat. */
 fun nextHuAfter(doneIn: YearMonth): YearMonth = doneIn.plusMonths(24)
+
+/** Vorwarnzeit vor dem Plaketten-Monat in Tagen, mit Beschriftung. */
+val HU_WARN_OPTIONS = listOf(14 to R.string.warn_2_weeks, 30 to R.string.warn_1_month, 60 to R.string.warn_2_months)
 
 private fun urgencyFor(due: LocalDate, today: LocalDate, soonFrom: LocalDate = due.minusDays(SOON_DAYS)) = when {
     today.isAfter(due) -> Urgency.OVERDUE
@@ -118,16 +101,13 @@ private fun urgencyFor(due: LocalDate, today: LocalDate, soonFrom: LocalDate = d
     else -> Urgency.LATER
 }
 
-private fun monthsText(n: Long) = if (n == 1L) "1 Monat" else "$n Monaten"
-
-/** „noch 12 Tage“, „in 5 Monaten“ */
-private fun timeLeft(today: LocalDate, due: LocalDate): String {
+/** „Noch 12 Tage.“ oder „In 5 Monaten.“ */
+private fun timeLeft(today: LocalDate, due: LocalDate): UiText {
     val days = ChronoUnit.DAYS.between(today, due)
     return when {
-        days <= 0 -> "heute"
-        days == 1L -> "noch 1 Tag"
-        days <= 45 -> "noch $days Tage"
-        else -> "in ${monthsText(ChronoUnit.MONTHS.between(YearMonth.from(today), YearMonth.from(due)))}"
+        days <= 0 -> text(R.string.today_sentence)
+        days <= 45 -> plural(R.plurals.days_left, days.toInt())
+        else -> plural(R.plurals.months_left, ChronoUnit.MONTHS.between(YearMonth.from(today), YearMonth.from(due)).toInt())
     }
 }
 
@@ -144,14 +124,6 @@ private fun projectKmDue(remaining: Int, avgPerMonth: Double?, today: LocalDate)
     else -> YearMonth.from(today).plusMonths(ceil(remaining / avgPerMonth).toLong()).atEndOfMonth()
 }
 
-private val WEEKDAY_DATE = DateTimeFormatter.ofPattern("EE, dd.MM.yyyy", Locale.GERMAN)
-
-/** „Mi., 14.10.2026“ */
-fun fmtWeekdayDate(d: LocalDate): String = d.format(WEEKDAY_DATE)
-
-/** Wahlmöglichkeiten für die Vorwarnzeit vor dem Plaketten-Monat. */
-val HU_WARN_OPTIONS = listOf(14 to "2 Wochen", 30 to "1 Monat", 60 to "2 Monate")
-
 // --- HU ---
 
 internal fun huReminder(care: CarCare, today: LocalDate): Reminder? {
@@ -163,16 +135,16 @@ internal fun huReminder(care: CarCare, today: LocalDate): Reminder? {
     // Fällig ist der ganze Plaketten-Monat; erinnert wird die eingestellte Zeit vor dessen Beginn.
     val urgency = urgencyFor(due, today, soonFrom = month.atDay(1).minusDays(care.huWarnDays.toLong()))
     val detail = when (urgency) {
-        Urgency.OVERDUE -> {
-            val over = ChronoUnit.MONTHS.between(month, YearMonth.from(today))
-            "Seit ${monthsText(over)} überfällig. Wer mehr als 2 Monate drüber ist, zahlt ein Bußgeld " +
-                "und eine teurere Prüfung."
-        }
-        Urgency.SOON -> "Jetzt einen Termin bei TÜV, DEKRA oder GTÜ ausmachen und hier eintragen. " +
-            "Die Abgasuntersuchung (AU) ist Teil der HU."
-        Urgency.LATER -> "${timeLeft(today, month.atDay(1)).replaceFirstChar { it.uppercase() }}."
+        Urgency.OVERDUE -> UiText.Join(
+            listOf(
+                plural(R.plurals.hu_overdue_months, ChronoUnit.MONTHS.between(month, YearMonth.from(today)).toInt()),
+                text(R.string.hu_overdue_fine),
+            ),
+        )
+        Urgency.SOON -> text(R.string.hu_soon)
+        Urgency.LATER -> timeLeft(today, month.atDay(1))
     }
-    return Reminder(care.carId, ReminderKind.HU, due, urgency, "Fällig im ${monthLong(month)}", detail)
+    return Reminder(care.carId, ReminderKind.HU, due, urgency, text(R.string.due_in, month), detail)
 }
 
 /** HU mit gebuchtem Termin: Es zählt der Termin, nicht mehr der Plaketten-Monat. */
@@ -180,14 +152,14 @@ private fun huAppointmentReminder(care: CarCare, month: YearMonth, appointment: 
     val days = ChronoUnit.DAYS.between(today, appointment)
     val urgency = if (days <= 7) Urgency.SOON else Urgency.LATER
     val detail = when {
-        days < 0 -> "Der Termin war am ${fmtDate(appointment)}. Tippe auf „Erledigt“, dann wird die nächste HU berechnet."
-        days == 0L -> "Heute. Fahrzeugschein (Zulassungsbescheinigung Teil I) nicht vergessen."
-        days == 1L -> "Morgen. Fahrzeugschein (Zulassungsbescheinigung Teil I) nicht vergessen."
-        else -> "Noch $days Tage. Plakette: ${monthLong(month)}."
+        days < 0 -> text(R.string.hu_appt_past, appointment)
+        days == 0L -> text(R.string.hu_appt_today)
+        days == 1L -> text(R.string.hu_appt_tomorrow)
+        else -> UiText.Join(listOf(plural(R.plurals.days_left, days.toInt()), text(R.string.hu_plakette, month)))
     }
     return Reminder(
         care.carId, ReminderKind.HU, appointment, urgency,
-        "Termin am ${fmtWeekdayDate(appointment)}", detail, appointment = appointment,
+        text(R.string.hu_appt_headline, UiText.WeekdayDate(appointment)), detail, appointment = appointment,
     )
 }
 
@@ -220,22 +192,22 @@ internal fun serviceReminder(care: CarCare, entries: List<Entry>, today: LocalDa
     }
 
     val headline = when {
-        remaining != null && remaining <= 0 -> "Kilometergrenze erreicht"
-        urgency == Urgency.OVERDUE -> "Seit ${monthLong(YearMonth.from(timeDue))} fällig"
-        byKm -> "Voraussichtlich im ${monthLong(YearMonth.from(due))}"
-        else -> "Spätestens im ${monthLong(YearMonth.from(timeDue))}"
+        remaining != null && remaining <= 0 -> text(R.string.km_limit_reached)
+        urgency == Urgency.OVERDUE -> text(R.string.due_since, YearMonth.from(timeDue))
+        byKm -> text(R.string.expected_in, YearMonth.from(due))
+        else -> text(R.string.latest_in, YearMonth.from(timeDue))
     }
-    val detail = buildString {
-        if (care.serviceKm != null) {
-            append("${fmtInt(kmSince.toDouble())} von ${fmtInt(care.serviceKm.toDouble())} km gefahren")
-            if (remaining != null && remaining > 0) append(", noch ca. ${fmtInt(remaining.toDouble())} km")
-            append(". ")
+    val parts = mutableListOf<UiText>()
+    if (care.serviceKm != null) {
+        parts += if (remaining != null && remaining > 0) {
+            text(R.string.service_progress_left, fmtInt(kmSince.toDouble()), fmtInt(care.serviceKm.toDouble()), fmtInt(remaining.toDouble()))
+        } else {
+            text(R.string.service_progress, fmtInt(kmSince.toDouble()), fmtInt(care.serviceKm.toDouble()))
         }
-        append("Letzte Inspektion: ${monthLong(last)}")
-        care.lastServiceOdometer?.let { append(" bei ${fmtInt(it.toDouble())} km") }
-        append(".")
     }
-    return Reminder(care.carId, ReminderKind.SERVICE, due, urgency, headline, detail)
+    parts += care.lastServiceOdometer?.let { text(R.string.service_last_at, last, fmtInt(it.toDouble())) }
+        ?: text(R.string.service_last, last)
+    return Reminder(care.carId, ReminderKind.SERVICE, due, urgency, headline, UiText.Join(parts))
 }
 
 // --- Reifen ---
@@ -267,12 +239,8 @@ internal fun tireReminder(care: CarCare, today: LocalDate): Reminder? {
         else -> Urgency.OVERDUE
     }
     val winter = season.kind == ReminderKind.WINTER_TIRES
-    val headline = if (winter) "Im Oktober ${season.due.year}" else "Nach Ostern, meist im April ${season.due.year}"
-    val detail = if (winter) {
-        "Faustregel: Winterreifen von Oktober bis Ostern. Bei Glätte, Schnee und Eis sind sie Pflicht."
-    } else {
-        "Faustregel: Winterreifen von Oktober bis Ostern, danach Sommerreifen."
-    }
+    val headline = text(if (winter) R.string.tires_winter_headline else R.string.tires_summer_headline, season.due.year)
+    val detail = text(if (winter) R.string.tires_winter_detail else R.string.tires_summer_detail)
     return Reminder(care.carId, season.kind, season.due, urgency, headline, detail, seasonKey = season.key)
 }
 
@@ -283,58 +251,6 @@ internal fun brakeFluidReminder(care: CarCare, today: LocalDate): Reminder? {
     val dueMonth = last.plusMonths(care.brakeMonths.toLong())
     val due = dueMonth.atEndOfMonth()
     val urgency = urgencyFor(due, today)
-    val headline = if (urgency == Urgency.OVERDUE) "Seit ${monthLong(dueMonth)} fällig" else "Spätestens im ${monthLong(dueMonth)}"
-    val detail = "Letzter Wechsel: ${monthLong(last)}. Am einfachsten bei der nächsten Inspektion mitmachen lassen."
-    return Reminder(care.carId, ReminderKind.BRAKE_FLUID, due, urgency, headline, detail)
-}
-
-// --- Zahnriemen ---
-
-/**
- * Fällig nach [CarCare.beltKm] km oder [CarCare.beltYears] Jahren seit dem letzten Wechsel,
- * ohne Wechsel seit Baujahr und 0 km. Ohne genug Angaben gibt es keine Erinnerung.
- */
-internal fun timingBeltReminder(
-    care: CarCare,
-    entries: List<Entry>,
-    today: LocalDate,
-    odometer: Int?,
-    buildYear: Int?,
-): Reminder? {
-    val neverChanged = care.lastBeltYear == null && care.lastBeltOdometer == null
-    val baseYear = care.lastBeltYear ?: buildYear
-    val baseKm = care.lastBeltOdometer ?: if (neverChanged) 0 else null
-    val remaining = if (baseKm != null && odometer != null) baseKm + care.beltKm - odometer else null
-    if (baseYear == null && remaining == null) return null
-
-    // Nach Alter: sicherheitshalber ab Jahresbeginn des Fälligkeitsjahres.
-    val dueYear = baseYear?.plus(care.beltYears)
-    val timeDue = dueYear?.let { LocalDate.of(it, 1, 1) }
-    val avgPerMonth = averageMonthlyKm(entries)
-    val kmDue = remaining?.let { projectKmDue(it, avgPerMonth, today) }
-    val due = listOfNotNull(timeDue, kmDue).minOrNull() ?: return null
-    val byKm = kmDue != null && due == kmDue && due != timeDue
-
-    // Ein Zahnriemenwechsel will geplant sein: „bald“ schon 2 Monate vorher.
-    var urgency = if (remaining != null && remaining <= 0) Urgency.OVERDUE else urgencyFor(due, today, due.minusDays(60))
-    if (urgency == Urgency.LATER && remaining != null && avgPerMonth != null && remaining <= 2 * avgPerMonth) {
-        urgency = Urgency.SOON
-    }
-
-    val headline = when {
-        remaining != null && remaining <= 0 -> "Kilometergrenze erreicht"
-        byKm -> "Voraussichtlich im ${monthLong(YearMonth.from(due))}"
-        urgency == Urgency.OVERDUE -> "Seit $dueYear fällig"
-        else -> "Spätestens $dueYear"
-    }
-    val detail = buildString {
-        val limits = listOfNotNull(
-            baseKm?.let { "bei ${fmtInt((it + care.beltKm).toDouble())} km" },
-            dueYear?.let { "im Jahr $it" },
-        )
-        append("Fällig ${limits.joinToString(" oder ")}, je nachdem, was zuerst kommt.")
-        odometer?.let { append(" Aktuell ca. ${fmtInt(it.toDouble())} km.") }
-        if (neverChanged) append(" Gerechnet ab Baujahr, weil noch kein Wechsel eingetragen ist.")
-    }
-    return Reminder(care.carId, ReminderKind.TIMING_BELT, due, urgency, headline, detail)
+    val headline = text(if (urgency == Urgency.OVERDUE) R.string.due_since else R.string.latest_in, dueMonth)
+    return Reminder(care.carId, ReminderKind.BRAKE_FLUID, due, urgency, headline, text(R.string.brake_detail, last))
 }

@@ -16,10 +16,14 @@ class CsvTest {
     private val receipts = listOf(
         FuelReceipt("r1", "a", LocalDate.of(2026, 9, 16), 40.9, 72.36),
     )
+    private val maintenance = listOf(
+        MaintenanceCost("m1", "a", LocalDate.of(2026, 3, 12), MaintenanceCategory.INSPECTION, 289.9, "Ölwechsel; Filter"),
+        MaintenanceCost("m2", "b", LocalDate.of(2026, 5, 2), MaintenanceCategory.TIRES, 64.0),
+    )
 
     @Test
     fun exportThenImportGivesSameData() {
-        val parsed = Csv.parse(Csv.write(cars, entries, receipts))
+        val parsed = Csv.parse(Csv.write(cars, entries, receipts, maintenance))
 
         assertEquals(emptyList<Int>(), parsed.badLines)
         assertEquals(
@@ -30,17 +34,25 @@ class CsvTest {
             parsed.trips,
         )
         assertEquals(listOf(Csv.Fuel("Golf", LocalDate.of(2026, 9, 16), 40.9, 72.36)), parsed.fuel)
+        assertEquals(
+            listOf(
+                Csv.Maintenance("Firma; Kombi", LocalDate.of(2026, 5, 2), MaintenanceCategory.TIRES, 64.0, null),
+                Csv.Maintenance("Golf", LocalDate.of(2026, 3, 12), MaintenanceCategory.INSPECTION, 289.9, "Ölwechsel; Filter"),
+            ),
+            parsed.maintenance,
+        )
     }
 
     @Test
     fun exportUsesGermanNumbersAndComputedPrice() {
-        val text = Csv.write(cars, entries, receipts)
+        val text = Csv.write(cars, entries, receipts, maintenance)
         assertTrue(text, text.contains("Tanken;Golf;;;;2026-09-16;40,9;72,36;1,769"))
+        assertTrue(text, text.contains("Wartung;Golf;;;;2026-03-12;;289,90;;Inspektion;\"Ölwechsel; Filter\""))
         assertTrue(text, text.contains("\"Firma; Kombi\""))
     }
 
     @Test
-    fun acceptsCommaSeparatedFileWithGermanDates() {
+    fun acceptsOlderFileWithoutMaintenanceColumns() {
         val text = "Typ,Auto,Monat,Kilometer,Verbrauch,Datum,Liter,Kosten\n" +
             "Fahrt,Golf,09.2026,1300,6.1,,,\n" +
             "Tanken,Golf,,,,16.09.2026,40.5,70.20\n" +
@@ -52,8 +64,21 @@ class CsvTest {
         assertEquals(listOf(4), parsed.badLines)
     }
 
-    @Test(expected = Csv.FormatException::class)
+    @Test
+    fun unknownCategoryBecomesOther() {
+        val text = "Typ;Auto;Datum;Kosten (€);Art\nWartung;Golf;2026-01-05;99,50;Waschanlage\n"
+        assertEquals(MaintenanceCategory.OTHER, Csv.parse(text).maintenance.single().category)
+    }
+
+    @Test
     fun rejectsFileWithoutRequiredColumns() {
-        Csv.parse("Datum;Betrag\n2026-09-01;50\n")
+        val e = runCatching { Csv.parse("Datum;Betrag\n2026-09-01;50\n") }.exceptionOrNull() as Csv.FormatException
+        assertEquals(Csv.Problem.MISSING_COLUMNS, e.problem)
+    }
+
+    @Test
+    fun rejectsEmptyFile() {
+        val e = runCatching { Csv.parse("\n\n") }.exceptionOrNull() as Csv.FormatException
+        assertEquals(Csv.Problem.EMPTY, e.problem)
     }
 }

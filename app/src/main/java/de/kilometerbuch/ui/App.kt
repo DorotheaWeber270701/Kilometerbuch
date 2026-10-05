@@ -1,13 +1,16 @@
 package de.kilometerbuch.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -60,6 +63,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
@@ -69,9 +75,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import de.kilometerbuch.R
 import de.kilometerbuch.data.Car
 import de.kilometerbuch.data.CarCare
-import de.kilometerbuch.data.estimateOdometer
 import de.kilometerbuch.data.Entry
 import de.kilometerbuch.data.FuelReceipt
+import de.kilometerbuch.data.MaintenanceCost
+import de.kilometerbuch.data.estimateOdometer
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
@@ -80,11 +87,14 @@ import java.time.YearMonth
  * [addLabel] ist die Beschriftung des Plus-Knopfs; null = kein Knopf auf dieser Seite.
  * Seiten mit [inBottomBar] = false erreicht man über das Menü.
  */
-enum class Page(val label: String, val addLabel: String?, @DrawableRes val icon: Int, val inBottomBar: Boolean = true) {
-    Trips("Fahrten", "Monat eintragen", R.drawable.ic_speed),
-    Fuel("Tanken", "Tankbeleg eintragen", R.drawable.ic_fuel),
-    Reminders("Termine", null, R.drawable.ic_event, inBottomBar = false),
+enum class Page(@StringRes val label: Int, @StringRes val addLabel: Int?, @DrawableRes val icon: Int, val inBottomBar: Boolean = true) {
+    Trips(R.string.page_trips, R.string.add_month, R.drawable.ic_speed),
+    Fuel(R.string.page_fuel, R.string.add_receipt, R.drawable.ic_fuel),
+    Reminders(R.string.page_reminders, null, R.drawable.ic_event, inBottomBar = false),
 }
+
+/** Öffentliche Datenschutzerklärung, wie in der Play Console eingetragen. */
+private const val PRIVACY_URL = "https://github.com/PeguinDevelopment/Kilometerbuch/blob/main/DATENSCHUTZ.md"
 
 /** Offener Bearbeiten-Dialog; [original] ist null für einen neuen Eintrag. */
 private data class Editing<T>(val original: T?)
@@ -96,6 +106,7 @@ fun App(vm: MainViewModel = viewModel()) {
     val themeMode by vm.themeMode.collectAsStateWithLifecycle()
     val entries by vm.entries.collectAsStateWithLifecycle()
     val receipts by vm.receipts.collectAsStateWithLifecycle()
+    val maintenance by vm.maintenance.collectAsStateWithLifecycle()
     val cares by vm.cares.collectAsStateWithLifecycle()
     val snackText by vm.snack.collectAsStateWithLifecycle()
     val importReport by vm.importReport.collectAsStateWithLifecycle()
@@ -110,12 +121,16 @@ fun App(vm: MainViewModel = viewModel()) {
 
     var editingEntry by remember { mutableStateOf<Editing<Entry>?>(null) }
     var editingReceipt by remember { mutableStateOf<Editing<FuelReceipt>?>(null) }
+    var editingMaintenance by remember { mutableStateOf<Editing<MaintenanceCost>?>(null) }
     var editingCar by remember { mutableStateOf<Editing<Car>?>(null) }
     var deletingEntry by remember { mutableStateOf<Entry?>(null) }
     var deletingReceipt by remember { mutableStateOf<FuelReceipt?>(null) }
+    var deletingMaintenance by remember { mutableStateOf<MaintenanceCost?>(null) }
     var deletingCar by remember { mutableStateOf<Car?>(null) }
     /** Offener Einrichtungsdialog einer Erinnerung. */
     var editingCareItem by remember { mutableStateOf<Pair<Car, CareItem>?>(null) }
+    var adjustingOdometer by remember { mutableStateOf<Car?>(null) }
+    var choosingLanguage by remember { mutableStateOf(false) }
 
     // Benachrichtigungen: Zustand beim Zurückkehren in die App neu lesen (z. B. nach den Einstellungen).
     val context = LocalContext.current
@@ -187,7 +202,7 @@ fun App(vm: MainViewModel = viewModel()) {
     if (cars?.isEmpty() == true) {
         Onboarding(
             onCreateCar = { input ->
-                vm.addCar(input.name, input.odometerKm, input.buildYear)?.let { carChoice = it.id }
+                vm.addCar(input)?.let { carChoice = it.id }
                 page = Page.Trips
             },
             onImport = ::launchImport,
@@ -201,8 +216,6 @@ fun App(vm: MainViewModel = viewModel()) {
                 drawerContent = {
                     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                         SideMenu(
-                            themeMode = themeMode,
-                            onThemeMode = vm::setThemeMode,
                             cars = carList,
                             dueCount = dueCount,
                             onReminders = {
@@ -226,6 +239,14 @@ fun App(vm: MainViewModel = viewModel()) {
                                 closeMenu()
                                 launchImport()
                             },
+                            themeMode = themeMode,
+                            onThemeMode = vm::setThemeMode,
+                            language = vm.language,
+                            onLanguage = { choosingLanguage = true },
+                            onPrivacy = {
+                                closeMenu()
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL)))
+                            },
                         )
                     }
                 },
@@ -237,7 +258,7 @@ fun App(vm: MainViewModel = viewModel()) {
                                 navigationIcon = {
                                     if (!page.inBottomBar) {
                                         IconButton(onClick = { page = returnPage }) {
-                                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                                         }
                                     }
                                 },
@@ -263,7 +284,7 @@ fun App(vm: MainViewModel = viewModel()) {
                                             selected = p == page,
                                             onClick = { page = p },
                                             icon = { Icon(painterResource(p.icon), contentDescription = null) },
-                                            label = { Text(p.label) },
+                                            label = { Text(stringResource(p.label)) },
                                         )
                                     }
                                 }
@@ -281,7 +302,7 @@ fun App(vm: MainViewModel = viewModel()) {
                                         }
                                     },
                                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                                    text = { Text(addLabel) },
+                                    text = { Text(stringResource(addLabel)) },
                                 )
                             }
                         },
@@ -295,9 +316,10 @@ fun App(vm: MainViewModel = viewModel()) {
                         )
                         val tripList = entries
                         val receiptList = receipts
+                        val maintenanceList = maintenance
                         val careList = cares
                         when {
-                            carList.isEmpty() || tripList == null || receiptList == null || careList == null ->
+                            carList.isEmpty() || tripList == null || receiptList == null || maintenanceList == null || careList == null ->
                                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                                     CircularProgressIndicator()
                                 }
@@ -312,6 +334,7 @@ fun App(vm: MainViewModel = viewModel()) {
                                 onRangeChange = { range = it },
                                 contentPadding = contentPadding,
                                 onEdit = { editingEntry = Editing(it) },
+                                onAdjustOdometer = { adjustingOdometer = it },
                             )
 
                             page == Page.Reminders -> RemindersContent(
@@ -325,7 +348,7 @@ fun App(vm: MainViewModel = viewModel()) {
                                 onToggle = { car, careItem, on ->
                                     val care = careList.find { it.carId == car.id } ?: CarCare(car.id)
                                     // Einschalten fragt erst nach fehlenden Angaben; Ausschalten geht sofort.
-                                    if (on && needsSetup(careItem, care, car)) {
+                                    if (on && needsSetup(careItem, care)) {
                                         editingCareItem = car to careItem
                                     } else {
                                         vm.setCareItemOn(car.id, careItem, on)
@@ -339,6 +362,7 @@ fun App(vm: MainViewModel = viewModel()) {
                             else -> FuelContent(
                                 cars = carList,
                                 receipts = receiptList,
+                                maintenance = maintenanceList,
                                 selectedCar = selectedCar,
                                 year = year,
                                 onYearChange = { year = it },
@@ -346,6 +370,8 @@ fun App(vm: MainViewModel = viewModel()) {
                                 onRangeChange = { range = it },
                                 contentPadding = contentPadding,
                                 onEdit = { editingReceipt = Editing(it) },
+                                onAddMaintenance = { editingMaintenance = Editing(null) },
+                                onEditMaintenance = { editingMaintenance = Editing(it) },
                             )
                         }
                     }
@@ -362,7 +388,11 @@ fun App(vm: MainViewModel = viewModel()) {
                 .height(64.dp),
             contentAlignment = Alignment.Center,
         ) {
-            IconButton(onClick = { scope.launch { if (drawerState.isOpen) drawerState.close() else drawerState.open() } }) {
+            val menuLabel = stringResource(if (menuProgress < 0.5f) R.string.menu_open else R.string.menu_close)
+            IconButton(
+                onClick = { scope.launch { if (drawerState.isOpen) drawerState.close() else drawerState.open() } },
+                modifier = Modifier.semantics { contentDescription = menuLabel },
+            ) {
                 Box {
                     MenuCloseIcon(
                         progress = menuProgress,
@@ -425,6 +455,37 @@ fun App(vm: MainViewModel = viewModel()) {
         }
     }
 
+    editingMaintenance?.let { state ->
+        if (carForDialogs != null) {
+            MaintenanceDialog(
+                original = state.original,
+                cars = carList,
+                initialCarId = carForDialogs,
+                onDismiss = { editingMaintenance = null },
+                onSave = { cost ->
+                    vm.saveMaintenance(cost)
+                    editingMaintenance = null
+                },
+                onDelete = {
+                    deletingMaintenance = state.original
+                    editingMaintenance = null
+                },
+            )
+        }
+    }
+
+    adjustingOdometer?.let { car ->
+        OdometerDialog(
+            car = car,
+            entries = entries.orEmpty(),
+            onDismiss = { adjustingOdometer = null },
+            onSave = { actual, month ->
+                vm.correctOdometer(car.id, actual, month)
+                adjustingOdometer = null
+            },
+        )
+    }
+
     editingCar?.let { state ->
         val original = state.original
         val currentOdometer = original?.let { estimateOdometer(it, entries.orEmpty()) }
@@ -432,10 +493,11 @@ fun App(vm: MainViewModel = viewModel()) {
             original = original,
             cars = carList,
             currentOdometer = currentOdometer,
+            newColorIndex = vm.nextColor(),
             onDismiss = { editingCar = null },
             onSave = { input ->
                 if (original == null) {
-                    vm.addCar(input.name, input.odometerKm, input.buildYear)?.let { carChoice = it.id }
+                    vm.addCar(input)?.let { carChoice = it.id }
                 } else {
                     // Nur ein geänderter Kilometerstand gilt als neu abgelesen.
                     val odometerChanged = input.odometerKm != currentOdometer
@@ -445,6 +507,8 @@ fun App(vm: MainViewModel = viewModel()) {
                             odometerKm = if (odometerChanged) input.odometerKm else original.odometerKm,
                             odometerMonth = if (odometerChanged) input.odometerKm?.let { YearMonth.now() } else original.odometerMonth,
                             buildYear = input.buildYear,
+                            colorIndex = input.colorIndex,
+                            customColor = input.customColor,
                         ),
                     )
                 }
@@ -459,8 +523,8 @@ fun App(vm: MainViewModel = viewModel()) {
 
     deletingEntry?.let { entry ->
         ConfirmDeleteDialog(
-            title = "Eintrag löschen?",
-            text = "${monthLong(entry.month)} mit ${fmtInt(entry.km.toDouble())} km wird gelöscht.",
+            title = stringResource(R.string.delete_entry_title),
+            text = stringResource(R.string.delete_entry_text, monthLong(entry.month), fmtInt(entry.km.toDouble())),
             onConfirm = {
                 vm.deleteEntry(entry)
                 deletingEntry = null
@@ -471,8 +535,8 @@ fun App(vm: MainViewModel = viewModel()) {
 
     deletingReceipt?.let { receipt ->
         ConfirmDeleteDialog(
-            title = "Tankbeleg löschen?",
-            text = "Beleg vom ${fmtDate(receipt.date)} über ${fmt2(receipt.total)} € wird gelöscht.",
+            title = stringResource(R.string.delete_receipt_title),
+            text = stringResource(R.string.delete_receipt_text, fmtDate(receipt.date), fmt2(receipt.total)),
             onConfirm = {
                 vm.deleteReceipt(receipt.id)
                 deletingReceipt = null
@@ -481,13 +545,28 @@ fun App(vm: MainViewModel = viewModel()) {
         )
     }
 
+    deletingMaintenance?.let { cost ->
+        ConfirmDeleteDialog(
+            title = stringResource(R.string.delete_maintenance_title),
+            text = stringResource(
+                R.string.delete_maintenance_text,
+                stringResource(cost.category.label()), fmtDate(cost.date), fmt2(cost.amount),
+            ),
+            onConfirm = {
+                vm.deleteMaintenance(cost.id)
+                deletingMaintenance = null
+            },
+            onDismiss = { deletingMaintenance = null },
+        )
+    }
+
     deletingCar?.let { car ->
         val trips = entries.orEmpty().count { it.carId == car.id }
         val fuel = receipts.orEmpty().count { it.carId == car.id }
+        val costs = maintenance.orEmpty().count { it.carId == car.id }
         ConfirmDeleteDialog(
-            title = "„${car.name}“ löschen?",
-            text = "Das Auto wird mit $trips Fahrten und $fuel Tankbelegen gelöscht. " +
-                "Lade vorher eine CSV-Datei herunter, wenn du die Daten behalten willst.",
+            title = stringResource(R.string.delete_car_title, car.name),
+            text = stringResource(R.string.delete_car_text, trips, fuel, costs),
             onConfirm = {
                 vm.deleteCar(car.id)
                 if (carChoice == car.id) carChoice = null
@@ -515,12 +594,27 @@ fun App(vm: MainViewModel = viewModel()) {
         )
     }
 
+    if (choosingLanguage) {
+        LanguageDialog(
+            current = vm.language,
+            onSelect = { language ->
+                choosingLanguage = false
+                if (language != vm.language) {
+                    vm.setLanguage(language)
+                    // Neu aufbauen, damit alle Texte in der neuen Sprache erscheinen.
+                    (context as? Activity)?.recreate()
+                }
+            },
+            onDismiss = { choosingLanguage = false },
+        )
+    }
+
     importReport?.let { report ->
         AlertDialog(
             onDismissRequest = vm::importReportShown,
-            title = { Text("CSV hochladen") },
+            title = { Text(stringResource(R.string.import_title)) },
             text = { Text(report) },
-            confirmButton = { TextButton(onClick = vm::importReportShown) { Text("OK") } },
+            confirmButton = { TextButton(onClick = vm::importReportShown) { Text(stringResource(R.string.ok)) } },
         )
     }
 }

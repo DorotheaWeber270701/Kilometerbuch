@@ -34,11 +34,6 @@ class CareRepository(context: Context) {
                 brakeOn = o.optBoolean("brakeOn", false),
                 lastBrakeFluid = o.optStringOrNull("lastBrakeFluid")?.let(YearMonth::parse),
                 brakeMonths = o.optInt("brakeMonths", 24),
-                beltOn = o.optBoolean("beltOn", false),
-                beltKm = o.optInt("beltKm", 120_000),
-                beltYears = o.optInt("beltYears", 6),
-                lastBeltOdometer = o.optIntOrNull("lastBeltOdometer"),
-                lastBeltYear = o.optIntOrNull("lastBeltYear"),
             )
         }
     }
@@ -62,11 +57,6 @@ class CareRepository(context: Context) {
                 put("brakeOn", c.brakeOn)
                 c.lastBrakeFluid?.let { put("lastBrakeFluid", it.toString()) }
                 put("brakeMonths", c.brakeMonths)
-                put("beltOn", c.beltOn)
-                put("beltKm", c.beltKm)
-                put("beltYears", c.beltYears)
-                c.lastBeltOdometer?.let { put("lastBeltOdometer", it) }
-                c.lastBeltYear?.let { put("lastBeltYear", it) }
             })
         }
         store.write(JSONObject().put("version", 2).put("cars", arr))

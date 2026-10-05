@@ -9,7 +9,7 @@ Das Kilometerbuch sammelt keine Daten über dich. Alles, was du einträgst, blei
 ## Verantwortlich
 
 Dorothea Weber
-E-Mail: david.mueller.d.m.0@gmail.com
+E-Mail: de.penguin.development@gmail.com
 
 ## Welche Daten die App verarbeitet
 

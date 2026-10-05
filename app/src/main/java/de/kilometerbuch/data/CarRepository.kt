@@ -20,6 +20,7 @@ class CarRepository(context: Context) {
                 odometerKm = if (o.isNull("odometerKm")) null else o.getInt("odometerKm"),
                 odometerMonth = if (o.isNull("odometerMonth")) null else YearMonth.parse(o.getString("odometerMonth")),
                 buildYear = if (o.isNull("buildYear")) null else o.getInt("buildYear"),
+                customColor = if (o.isNull("customColor")) null else o.getInt("customColor"),
             )
         }
     }
@@ -34,6 +35,7 @@ class CarRepository(context: Context) {
                 c.odometerKm?.let { put("odometerKm", it) }
                 c.odometerMonth?.let { put("odometerMonth", it.toString()) }
                 c.buildYear?.let { put("buildYear", it) }
+                c.customColor?.let { put("customColor", it) }
             })
         }
         store.write(JSONObject().put("version", 2).put("cars", arr))

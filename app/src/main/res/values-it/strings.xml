@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="save">Salva</string>
+    <string name="cancel">Annulla</string>
+    <string name="delete">Elimina</string>
+    <string name="remove">Rimuovi</string>
+    <string name="ok">OK</string>
+    <string name="done">Fatto</string>
+    <string name="next">Avanti</string>
+    <string name="skip">Salta</string>
+    <string name="today">Oggi</string>
+    <string name="back">Indietro</string>
+    <string name="selected">Selezionato</string>
+    <string name="prev_year">Anno precedente</string>
+    <string name="next_year">Anno successivo</string>
+    <string name="prev_month">Mese precedente</string>
+    <string name="next_month">Mese successivo</string>
+    <string name="menu_open">Apri menu</string>
+    <string name="menu_close">Chiudi menu</string>
+    <string name="unit_liters">litri</string>
+    <string name="unit_months">mesi</string>
+    <string name="car_and_detail">%1$s · %2$s</string>
+
+    <string name="page_trips">Chilometri</string>
+    <string name="page_fuel">Carburante</string>
+    <string name="page_reminders">Promemoria</string>
+    <string name="add_month">Aggiungi mese</string>
+    <string name="add_receipt">Aggiungi rifornimento</string>
+    <string name="range_12">12 mesi</string>
+    <string name="range_24">24 mesi</string>
+    <string name="range_all">Tutto</string>
+
+    <string name="appearance">Aspetto</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_dark">Scuro</string>
+    <string name="language">Lingua</string>
+    <string name="language_system">Come il sistema</string>
+
+    <string name="all_cars">Tutte le auto</string>
+    <string name="choose_car">Scegli auto</string>
+    <string name="add_car">Aggiungi auto</string>
+    <string name="edit_car">Modifica auto</string>
+    <string name="edit_car_named">Modifica %1$s</string>
+    <string name="default_car_name">La mia auto</string>
+    <string name="car_name">Nome</string>
+    <string name="car_name_placeholder">ad es. Golf</string>
+    <string name="err_name_empty">Inserisci un nome, ad es. «Golf» o «Auto aziendale».</string>
+    <string name="err_name_long">Usa al massimo 30 caratteri.</string>
+    <string name="err_name_taken">Esiste già un’auto con questo nome.</string>
+    <string name="odometer_optional">Chilometraggio (facoltativo)</string>
+    <string name="odometer_hint_new">Per il promemoria del tagliando. Poi l’app continua a contare da sola.</string>
+    <string name="odometer_hint_existing">Aggiornato con i tuoi chilometri mensili.</string>
+    <string name="err_whole_number">Inserisci un numero intero, ad es. 48.300.</string>
+    <string name="build_year_optional">Anno di costruzione (facoltativo)</string>
+    <string name="err_year_range">Inserisci un anno tra %1$d e %2$d.</string>
+    <string name="car_color">Colore</string>
+    <string name="color_custom">Colore personalizzato</string>
+    <string name="color_hue">Tonalità</string>
+    <string name="color_brightness">Luminosità</string>
+
+    <string name="delete_entry_title">Eliminare la voce?</string>
+    <string name="delete_entry_text">%1$s con %2$s km verrà eliminato.</string>
+    <string name="delete_receipt_title">Eliminare il rifornimento?</string>
+    <string name="delete_receipt_text">Lo scontrino del %1$s di %2$s € verrà eliminato.</string>
+    <string name="delete_maintenance_title">Eliminare la spesa di manutenzione?</string>
+    <string name="delete_maintenance_text">%1$s del %2$s di %3$s € verrà eliminato.</string>
+    <string name="delete_car_title">Eliminare «%1$s»?</string>
+    <string name="delete_car_text">Verranno eliminate anche tutte le voci di quest’auto (chilometri: %1$d, rifornimenti: %2$d, manutenzione: %3$d). Scarica prima un file CSV se vuoi conservare i dati.</string>
+
+    <string name="per_car_in_year">Per auto nel %1$d</string>
+    <string name="stat_avg_month">Ø al mese</string>
+    <string name="stat_avg_consumption">Ø consumo</string>
+    <string name="stat_fuel_approx">Carburante circa</string>
+    <string name="stat_avg_price">Ø prezzo</string>
+    <string name="stat_refueled">Rifornito</string>
+    <string name="driven_title">Percorsi</string>
+    <string name="driven_title_all">Percorsi, tutte le auto</string>
+    <string name="months_none">Nessun mese inserito nel %1$d</string>
+    <plurals name="months_from">
+        <item quantity="one">su %d mese</item>
+        <item quantity="many">su %d mesi</item>
+        <item quantity="other">su %d mesi</item>
+    </plurals>
+    <string name="spend_title">Spese</string>
+    <string name="spend_title_all">Spese, tutte le auto</string>
+    <string name="receipts_none">Nessun rifornimento nel %1$d</string>
+    <plurals name="receipts_from">
+        <item quantity="one">su %d rifornimento</item>
+        <item quantity="many">su %d rifornimenti</item>
+        <item quantity="other">su %d rifornimenti</item>
+    </plurals>
+
+    <string name="trips_empty_title">Ancora nessuna voce</string>
+    <string name="trips_empty_title_car">Ancora niente per «%1$s»</string>
+    <string name="trips_empty_text">Tocca «Aggiungi mese» in basso e inserisci quanti chilometri hai percorso e il consumo. Poi vedrai l’andamento in un grafico.</string>
+    <string name="avg_consumption_value">Ø %1$s l/100 km</string>
+    <string name="consumption_value">%1$s l/100 km</string>
+    <string name="no_consumption">Nessun consumo inserito</string>
+    <string name="chart_km">Chilometri al mese</string>
+    <string name="stacked_by_car">Impilato per auto</string>
+    <string name="chart_consumption">Consumo</string>
+    <string name="one_line_per_car">Una linea per auto</string>
+    <string name="no_consumption_range">Nessun consumo inserito in questo periodo.</string>
+    <string name="entries_header">Voci</string>
+    <string name="entry_edit">Modifica voce</string>
+    <string name="driven">Percorsi</string>
+    <string name="consumption_optional">Consumo (facoltativo)</string>
+    <string name="err_km_empty">Inserisci i chilometri percorsi.</string>
+    <string name="err_km_range">Inserisci un numero intero tra 0 e 100.000.</string>
+    <string name="err_l100_range">Inserisci un valore tra 0,5 e 50, ad es. 6,4.</string>
+    <string name="entry_overwrites">Esiste già una voce per %1$s. Verrà sostituita.</string>
+
+    <string name="odometer_row">Contachilometri circa %1$s km</string>
+    <string name="odometer_unknown">Chilometraggio non ancora registrato</string>
+    <string name="odometer_adjust">Correggi</string>
+    <string name="odometer_enter">Inserisci</string>
+    <string name="odo_title">Correggi chilometraggio</string>
+    <string name="odo_current">Chilometraggio attuale</string>
+    <string name="odo_month_label">Aggiungi la differenza al mese</string>
+    <string name="odo_estimate">Stimato: circa %1$s km</string>
+    <string name="odo_plus">%1$s km in più del previsto. Verranno aggiunti a %2$s.</string>
+    <string name="odo_minus">%1$s km in meno del previsto. Verranno sottratti da %2$s.</string>
+    <string name="odo_equal">Corrisponde alla stima.</string>
+    <string name="odo_first">D’ora in poi l’app aggiorna il chilometraggio con i tuoi chilometri mensili.</string>
+
+    <string name="fuel_empty_title">Ancora nessun rifornimento</string>
+    <string name="fuel_empty_title_car">Ancora nessun rifornimento per «%1$s»</string>
+    <string name="fuel_empty_text">Tocca «Aggiungi rifornimento» in basso e inserisci i litri e l’importo totale. L’app calcola il prezzo al litro.</string>
+    <string name="no_receipt">Nessun rifornimento</string>
+    <string name="liters_avg_price">%1$s l · Ø %2$s €/l</string>
+    <string name="chart_spend">Spese al mese</string>
+    <string name="chart_spend_sub">Tratteggio: media mensile</string>
+    <string name="chart_spend_sub_stacked">Impilato per auto · tratteggio: media mensile</string>
+    <string name="chart_price">Prezzo al litro</string>
+    <string name="chart_price_sub">Media di tutti gli scontrini del mese</string>
+    <string name="chart_price_sub_all">Tutte le auto insieme, media di tutti gli scontrini del mese</string>
+    <string name="receipts_header">Rifornimenti</string>
+    <string name="receipt_details">%1$s l · %2$s €/l</string>
+    <string name="receipt_edit">Modifica rifornimento</string>
+    <string name="date">Data</string>
+    <string name="err_date_future">La data è nel futuro.</string>
+    <string name="refueled_amount">Rifornito</string>
+    <string name="total_cost">Importo totale</string>
+    <string name="err_liters_empty">Inserisci i litri riforniti.</string>
+    <string name="err_liters_range">Inserisci un valore tra 0,5 e 300, ad es. 42,5.</string>
+    <string name="err_total_empty">Inserisci l’importo totale.</string>
+    <string name="err_total_range">Inserisci un importo tra 0,50 e 2.000 €, ad es. 76,03.</string>
+    <string name="price_per_liter">Prezzo al litro</string>
+    <string name="price_calculated">calcolato automaticamente</string>
+
+    <string name="maint_header">Manutenzione e riparazioni</string>
+    <string name="maint_sum">%1$s € nel %2$d</string>
+    <string name="maint_add">Aggiungi spesa di manutenzione</string>
+    <string name="maint_edit">Modifica spesa di manutenzione</string>
+    <string name="maint_empty">Ancora nessuna spesa di manutenzione. Annota qui le fatture dell’officina, ad esempio per tagliandi o riparazioni.</string>
+    <string name="maint_cat_inspection">Tagliando</string>
+    <string name="maint_cat_repair">Riparazione</string>
+    <string name="maint_cat_tires">Pneumatici</string>
+    <string name="maint_cat_hu">Revisione</string>
+    <string name="maint_cat_other">Altro</string>
+    <string name="maint_amount">Importo</string>
+    <string name="maint_note">Nota (facoltativa)</string>
+    <string name="maint_note_placeholder">ad es. pastiglie dei freni anteriori</string>
+    <string name="err_amount_empty">Inserisci l’importo.</string>
+    <string name="err_amount_range">Inserisci un importo tra 0,01 e 50.000 €.</string>
+
+    <string name="date_placeholder">GG.MM.AAAA</string>
+    <string name="date_invalid">Questa data non esiste.</string>
+    <string name="date_format_error">Inserisci la data come GG.MM.AAAA, ad es. 14102026.</string>
+    <string name="date_typing_hint">Digita solo le cifre, i punti vengono aggiunti da soli.</string>
+
+    <string name="care_hu_title">Revisione</string>
+    <string name="care_hu_desc">Ti avvisa per tempo prima del mese di scadenza. Puoi inserire un appuntamento prenotato e ricevere un promemoria il giorno prima.</string>
+    <string name="care_hu_need">Mese della prossima revisione</string>
+    <string name="care_service_title">Tagliando</string>
+    <string name="care_service_desc">In base al tempo o ai chilometri, a seconda di cosa arriva prima. I chilometri provengono dalle tue voci mensili.</string>
+    <string name="care_service_need_month">Mese dell’ultimo tagliando</string>
+    <string name="care_service_need_interval">Intervallo secondo il libretto di manutenzione</string>
+    <string name="care_service_need_odo">Facoltativo: chilometraggio all’ultimo tagliando</string>
+    <string name="care_tires_title">Cambio pneumatici</string>
+    <string name="care_tires_desc">Pneumatici invernali a ottobre, estivi dopo Pasqua. Da disattivare con pneumatici quattro stagioni.</string>
+    <string name="care_brake_title">Liquido dei freni</string>
+    <string name="care_brake_desc">Il liquido dei freni assorbe acqua e di solito va cambiato ogni 2 anni, spesso insieme al tagliando.</string>
+    <string name="care_brake_need">Mese dell’ultimo cambio</string>
+    <string name="kind_winter_tires">Montare i pneumatici invernali</string>
+    <string name="kind_summer_tires">Montare i pneumatici estivi</string>
+    <string name="kind_brake_fluid">Cambiare il liquido dei freni</string>
+    <string name="warn_2_weeks">2 settimane</string>
+    <string name="warn_1_month">1 mese</string>
+    <string name="warn_2_months">2 mesi</string>
+
+    <string name="today_sentence">Oggi.</string>
+    <plurals name="days_left">
+        <item quantity="one">Manca %d giorno.</item>
+        <item quantity="many">Mancano %d giorni.</item>
+        <item quantity="other">Mancano %d giorni.</item>
+    </plurals>
+    <plurals name="months_left">
+        <item quantity="one">Tra %d mese.</item>
+        <item quantity="many">Tra %d mesi.</item>
+        <item quantity="other">Tra %d mesi.</item>
+    </plurals>
+    <plurals name="hu_overdue_months">
+        <item quantity="one">Scaduta da %d mese.</item>
+        <item quantity="many">Scaduta da %d mesi.</item>
+        <item quantity="other">Scaduta da %d mesi.</item>
+    </plurals>
+    <string name="hu_overdue_fine">Circolare con la revisione scaduta può comportare una multa.</string>
+    <string name="hu_soon">Prenota ora la revisione e inserisci qui l’appuntamento.</string>
+    <string name="due_in">Scade a %1$s</string>
+    <string name="hu_appt_headline">Appuntamento il %1$s</string>
+    <string name="hu_appt_past">L’appuntamento era il %1$s. Tocca «Fatto» per calcolare la prossima revisione.</string>
+    <string name="hu_appt_today">Oggi. Non dimenticare il libretto di circolazione.</string>
+    <string name="hu_appt_tomorrow">Domani. Non dimenticare il libretto di circolazione.</string>
+    <string name="hu_plakette">Scadenza: %1$s.</string>
+    <string name="km_limit_reached">Limite di chilometri raggiunto</string>
+    <string name="due_since">Da fare da %1$s</string>
+    <string name="expected_in">Previsto a %1$s</string>
+    <string name="latest_in">Al più tardi a %1$s</string>
+    <string name="service_progress">%1$s di %2$s km percorsi.</string>
+    <string name="service_progress_left">%1$s di %2$s km percorsi, ne mancano circa %3$s.</string>
+    <string name="service_last">Ultimo tagliando: %1$s.</string>
+    <string name="service_last_at">Ultimo tagliando: %1$s a %2$s km.</string>
+    <string name="tires_winter_headline">A ottobre %1$d</string>
+    <string name="tires_summer_headline">Dopo Pasqua, di solito ad aprile %1$d</string>
+    <string name="tires_winter_detail">Regola generale: pneumatici invernali da ottobre a Pasqua. In molte zone sono obbligatori in inverno.</string>
+    <string name="tires_summer_detail">Regola generale: pneumatici invernali da ottobre a Pasqua, poi quelli estivi.</string>
+    <string name="brake_detail">Ultimo cambio: %1$s. La cosa più semplice è farlo al prossimo tagliando.</string>
+
+    <string name="odo_fact">circa %1$s km</string>
+    <string name="build_year_fact">Anno %1$d</string>
+    <string name="intro_title">Di cosa deve ricordarti l’app?</string>
+    <string name="intro_text">Attiva qui sotto ciò che ti serve. L’app ti chiede solo i dati di quel promemoria e calcola il resto, ad esempio dai tuoi chilometri mensili. Quando qualcosa sta per scadere, ricevi una notifica.</string>
+    <string name="notif_off_title">Le notifiche sono disattivate</string>
+    <string name="notif_off_text">Senza notifiche vedi le scadenze solo qui nell’app.</string>
+    <string name="notif_allow">Consenti notifiche</string>
+    <string name="urgency_overdue">Scaduto</string>
+    <string name="urgency_soon">In scadenza</string>
+    <string name="urgency_later">Più avanti</string>
+    <string name="more_reminders">Altri promemoria</string>
+    <string name="appt_add">Aggiungi appuntamento</string>
+    <string name="appt_change">Modifica appuntamento</string>
+    <string name="edit_details">Modifica dati</string>
+    <string name="missing_details">Mancano ancora dei dati per calcolare la data.</string>
+    <string name="complete_details">Completa i dati</string>
+    <string name="needs_label">Necessario</string>
+    <string name="needs_nothing">Niente, funziona da solo.</string>
+    <string name="done_title">%1$s fatto?</string>
+    <string name="done_hu">La prossima revisione sarà impostata a %1$s.</string>
+    <string name="done_service">L’ultimo tagliando sarà impostato a %1$s, con il chilometraggio di oggi.</string>
+    <string name="done_tires">Il promemoria di questa stagione verrà nascosto. Tornerà la prossima stagione.</string>
+    <string name="done_brake">L’ultimo cambio sarà impostato a %1$s.</string>
+    <string name="appt_title">Appuntamento revisione</string>
+    <string name="appt_date">Data dell’appuntamento</string>
+    <string name="hu_next_due">Prossima revisione a</string>
+    <string name="hu_plakette_hint">Indicato sul libretto di circolazione o sul tagliando dell’ultima revisione.</string>
+    <string name="hu_warn_label">Avvisa prima del mese di scadenza</string>
+    <string name="hu_warn_reco">Consigliato: 1 mese, per trovare un appuntamento in tempo.</string>
+    <string name="service_last_label">Ultimo tagliando</string>
+    <string name="service_odo_label">Chilometraggio allora (facoltativo)</string>
+    <string name="service_odo_hint">Si trova nel libretto di manutenzione. Così il calcolo è più preciso.</string>
+    <string name="current_odo_optional">Chilometraggio attuale (facoltativo)</string>
+    <string name="current_odo_hint">Salvato con l’auto e aggiornato con i tuoi chilometri mensili.</string>
+    <string name="err_service_needs_odo">Per questo inserisci anche il chilometraggio attuale.</string>
+    <string name="interval_label">Intervallo secondo il libretto di manutenzione</string>
+    <string name="preset_1y">1 anno · 15.000 km</string>
+    <string name="preset_2y">2 anni · 30.000 km</string>
+    <string name="custom_interval">Intervallo personalizzato</string>
+    <string name="every">Ogni</string>
+    <string name="or_every">o ogni</string>
+    <string name="err_months_range">Da 1 a 60 mesi</string>
+    <string name="err_service_km_range">Da 1.000 a 100.000 km o vuoto</string>
+    <string name="first_reached">Conta ciò che si raggiunge prima.</string>
+    <string name="brake_last_label">Ultimo cambio</string>
+    <string name="brake_hint">Si trova nel libretto di manutenzione o sulla fattura dell’officina.</string>
+    <string name="brake_every">Cambiare ogni</string>
+    <string name="brake_1y">1 anno</string>
+    <string name="brake_2y">2 anni</string>
+    <string name="brake_3y">3 anni</string>
+
+    <string name="guide_welcome_title">Benvenuto in Kilometerbuch</string>
+    <string name="guide_welcome_text">Tieni sotto controllo quanto guidi, quanto spendi in carburante e quando scadono revisione e tagliando. Tutti i dati restano sul tuo telefono.</string>
+    <string name="guide_trips_title">Chilometri</string>
+    <string name="guide_trips_text">Una volta al mese inserisci quanti chilometri hai percorso e, se vuoi, il consumo. I grafici ti mostrano l’andamento.</string>
+    <string name="guide_fuel_title">Carburante e manutenzione</string>
+    <string name="guide_fuel_text">Inserisci i litri e l’importo dello scontrino. L’app calcola il prezzo al litro. Puoi anche annotare le fatture dell’officina.</string>
+    <string name="guide_menu_title">Promemoria e menu</string>
+    <string name="guide_menu_text">Nel menu in alto a destra trovi i promemoria per revisione, tagliando e pneumatici, altre auto, il backup in CSV, la modalità scura e la lingua.</string>
+    <string name="first_car_title">La tua prima auto</string>
+    <string name="first_car_text">Dalle un nome. Chilometraggio e anno puoi aggiungerli più tardi; il chilometraggio aiuta con il promemoria del tagliando.</string>
+    <string name="lets_go">Iniziamo</string>
+    <string name="load_csv">Carica dati da un file CSV</string>
+    <string name="load_csv_hint">Ad esempio un backup scaricato prima dal menu.</string>
+    <string name="step_of">Passo %1$d di %2$d</string>
+
+    <string name="menu">Menu</string>
+    <string name="due_count">%1$d in scadenza</string>
+    <string name="cars_section">Auto</string>
+    <string name="data_section">Dati</string>
+    <string name="csv_download">Scarica come CSV</string>
+    <string name="csv_upload">Carica CSV</string>
+    <string name="csv_info">Il file contiene tutte le auto, i chilometri, i rifornimenti e le spese di manutenzione e si apre con Excel. Durante il caricamento le voci vengono aggiunte: un mese esistente viene sostituito, gli scontrini doppi vengono saltati. Le auto vengono abbinate per nome.</string>
+    <string name="privacy_policy">Informativa sulla privacy</string>
+
+    <string name="csv_saved">File CSV salvato (chilometri: %1$d, rifornimenti: %2$d, manutenzione: %3$d).</string>
+    <string name="csv_save_failed">Impossibile salvare il file. Scegli un’altra posizione.</string>
+    <string name="import_title">Carica CSV</string>
+    <string name="import_unreadable">Impossibile leggere il file.</string>
+    <string name="import_empty">Il file è vuoto.</string>
+    <string name="import_missing_columns">Il file non ha il formato previsto: mancano le colonne «Typ» e «Auto». Scarica prima un file per vedere com’è strutturato.</string>
+    <string name="import_trips">Chilometri: %1$d nuovi</string>
+    <string name="import_fuel">Rifornimenti: %1$d nuovi</string>
+    <string name="import_maint">Manutenzione: %1$d nuovi</string>
+    <string name="import_replaced">, %1$d sostituiti</string>
+    <string name="import_skipped">, %1$d già presenti e saltati</string>
+    <string name="import_new_cars">Nuove auto create: %1$s.</string>
+    <string name="import_bad_lines">Non è stato possibile leggere %1$d righe (riga %2$s). Controlla lì tipo, data o mese e i numeri.</string>
+    <string name="save_failed">Salvataggio non riuscito. Riprova.</string>
+
+    <string name="notif_channel">Promemoria</string>
+    <string name="notif_channel_desc">Promemoria per revisione, tagliando e cambio pneumatici</string>
+    <string name="notif_title">%1$s: %2$s</string>
+    <string name="notif_title_overdue">%1$s: %2$s scaduto</string>
+    <string name="notif_appt_today">%1$s: revisione oggi</string>
+    <string name="notif_appt_tomorrow">%1$s: revisione domani</string>
+
+    <string-array name="months_long">
+        <item>gennaio</item><item>febbraio</item><item>marzo</item><item>aprile</item><item>maggio</item><item>giugno</item>
+        <item>luglio</item><item>agosto</item><item>settembre</item><item>ottobre</item><item>novembre</item><item>dicembre</item>
+    </string-array>
+    <string-array name="months_short">
+        <item>gen</item><item>feb</item><item>mar</item><item>apr</item><item>mag</item><item>giu</item>
+        <item>lug</item><item>ago</item><item>set</item><item>ott</item><item>nov</item><item>dic</item>
+    </string-array>
+</resources>

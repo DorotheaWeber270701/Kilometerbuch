@@ -1,9 +1,12 @@
 package de.kilometerbuch.ui
 
 import android.app.Application
+import android.content.Context
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import de.kilometerbuch.R
 import de.kilometerbuch.data.Car
 import de.kilometerbuch.data.CarCare
 import de.kilometerbuch.data.CarRepository
@@ -13,10 +16,15 @@ import de.kilometerbuch.data.Entry
 import de.kilometerbuch.data.EntryRepository
 import de.kilometerbuch.data.FuelReceipt
 import de.kilometerbuch.data.FuelRepository
+import de.kilometerbuch.data.MaintenanceCost
+import de.kilometerbuch.data.MaintenanceRepository
 import de.kilometerbuch.data.Settings
-import de.kilometerbuch.ui.theme.ThemeMode
+import de.kilometerbuch.data.correctOdometer
 import de.kilometerbuch.data.estimateOdometer
 import de.kilometerbuch.data.nextColorIndex
+import de.kilometerbuch.i18n.AppLanguage
+import de.kilometerbuch.i18n.L10n
+import de.kilometerbuch.ui.theme.ThemeMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,13 +42,14 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     private val entryRepo = EntryRepository(app)
     private val fuelRepo = FuelRepository(app)
     private val careRepo = CareRepository(app)
+    private val maintenanceRepo = MaintenanceRepository(app)
     private val settings = Settings(app)
 
     // Ein Thread für Dateizugriffe, damit Speichervorgänge in Reihenfolge laufen.
     @OptIn(ExperimentalCoroutinesApi::class)
     private val io = Dispatchers.IO.limitedParallelism(1)
 
-    /** Alle drei sind null, solange die Dateien noch geladen werden. */
+    /** Alle Listen sind null, solange die Dateien noch geladen werden. */
     private val _cars = MutableStateFlow<List<Car>?>(null)
     val cars: StateFlow<List<Car>?> = _cars.asStateFlow()
 
@@ -50,6 +59,9 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     private val _receipts = MutableStateFlow<List<FuelReceipt>?>(null)
     val receipts: StateFlow<List<FuelReceipt>?> = _receipts.asStateFlow()
 
+    private val _maintenance = MutableStateFlow<List<MaintenanceCost>?>(null)
+    val maintenance: StateFlow<List<MaintenanceCost>?> = _maintenance.asStateFlow()
+
     /** Termin-Angaben; ein Auto ohne Eintrag hat noch keine Termine eingerichtet. */
     private val _cares = MutableStateFlow<List<CarCare>?>(null)
     val cares: StateFlow<List<CarCare>?> = _cares.asStateFlow()
@@ -57,6 +69,8 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     /** Darstellung hell/dunkel; sofort aus den Einstellungen gelesen, damit nichts aufblitzt. */
     private val _themeMode = MutableStateFlow(settings.themeMode)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+
+    val language: AppLanguage get() = settings.language
 
     /** Kurze Meldung unten am Bildschirm. */
     private val _snack = MutableStateFlow<String?>(null)
@@ -74,7 +88,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
             // Daten aus der Zeit vor mehreren Autos bekommen ein Auto; eine leere App startet ohne,
             // dann zeigt sie den Schnellstart.
             if (cars.isEmpty() && (entries.isNotEmpty() || receipts.isNotEmpty())) {
-                cars = listOf(Car(UUID.randomUUID().toString(), "Mein Auto", 0))
+                cars = listOf(Car(UUID.randomUUID().toString(), str(R.string.default_car_name), 0))
                 carRepo.save(cars)
             }
             val ids = cars.map { it.id }.toSet()
@@ -82,23 +96,42 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
             // Daten ohne passendes Auto landen beim ersten Auto statt unsichtbar zu werden.
             _entries.value = entries.mapNotNull { if (it.carId in ids) it else fallback?.let { f -> it.copy(carId = f) } }
             _receipts.value = receipts.mapNotNull { if (it.carId in ids) it else fallback?.let { f -> it.copy(carId = f) } }
+            _maintenance.value = maintenanceRepo.load().filter { it.carId in ids }
             _cares.value = careRepo.load().filter { it.carId in ids }
             _cars.value = cars
         }
     }
 
+    /** Text in der App-Sprache, auch außerhalb der Oberfläche. */
+    private fun localized(): Context = L10n.wrap(app, settings.language)
+
+    private fun str(@StringRes id: Int, vararg args: Any): String = localized().getString(id, *args)
+
+    // --- Einstellungen ---
+
+    fun setThemeMode(mode: ThemeMode) {
+        _themeMode.value = mode
+        settings.themeMode = mode
+    }
+
+    /** Speichert die Sprache; die Activity baut sich danach mit der neuen Sprache neu auf. */
+    fun setLanguage(language: AppLanguage) {
+        settings.language = language
+    }
+
     // --- Autos ---
 
-    /** Legt ein Auto an; Kilometerstand und Baujahr sind optional. */
-    fun addCar(name: String, odometerKm: Int?, buildYear: Int?): Car? {
+    /** Legt ein Auto an; Kilometerstand, Baujahr und eigene Farbe sind optional. */
+    fun addCar(input: CarInput): Car? {
         val current = _cars.value ?: return null
         val car = Car(
             id = UUID.randomUUID().toString(),
-            name = name.trim(),
-            colorIndex = nextColorIndex(current),
-            odometerKm = odometerKm,
-            odometerMonth = odometerKm?.let { YearMonth.now() },
-            buildYear = buildYear,
+            name = input.name,
+            colorIndex = input.colorIndex,
+            odometerKm = input.odometerKm,
+            odometerMonth = input.odometerKm?.let { YearMonth.now() },
+            buildYear = input.buildYear,
+            customColor = input.customColor,
         )
         setCars(current + car)
         return car
@@ -110,18 +143,25 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         setCars(current.map { if (it.id == car.id) car else it })
     }
 
-    /** Löscht das Auto mitsamt seinen Fahrten, Tankbelegen und Terminen; auch das letzte. */
+    fun nextColor(): Int = nextColorIndex(_cars.value.orEmpty())
+
+    /** Löscht das Auto mitsamt allen seinen Einträgen; auch das letzte. */
     fun deleteCar(id: String) {
         val current = _cars.value ?: return
         setCars(current.filter { it.id != id })
         _entries.value?.let { list -> setEntries(list.filter { it.carId != id }) }
         _receipts.value?.let { list -> setReceipts(list.filter { it.carId != id }) }
+        _maintenance.value?.let { list -> setMaintenance(list.filter { it.carId != id }) }
         _cares.value?.let { list -> setCares(list.filter { it.carId != id }) }
     }
 
-    fun setThemeMode(mode: ThemeMode) {
-        _themeMode.value = mode
-        settings.themeMode = mode
+    /** Echten Tachostand übernehmen; die Differenz geht in den Monat [month]. */
+    fun correctOdometer(carId: String, actual: Int, month: YearMonth) {
+        val car = _cars.value?.find { it.id == carId } ?: return
+        val entries = _entries.value ?: return
+        val (updatedCar, updatedEntries) = correctOdometer(car, entries, actual, month)
+        updateCar(updatedCar)
+        if (updatedEntries != entries) setEntries(updatedEntries)
     }
 
     // --- Termine ---
@@ -159,7 +199,6 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
             ReminderKind.SERVICE -> care.copy(lastService = now, lastServiceOdometer = odometer)
             ReminderKind.WINTER_TIRES, ReminderKind.SUMMER_TIRES -> care.copy(tiresDone = reminder.seasonKey)
             ReminderKind.BRAKE_FLUID -> care.copy(lastBrakeFluid = now)
-            ReminderKind.TIMING_BELT -> care.copy(lastBeltOdometer = odometer, lastBeltYear = now.year)
         }
         saveCare(updated)
     }
@@ -195,30 +234,43 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         setReceipts(current.filter { it.id != id })
     }
 
+    // --- Wartung ---
+
+    fun saveMaintenance(cost: MaintenanceCost) {
+        val current = _maintenance.value ?: return
+        setMaintenance((current.filter { it.id != cost.id } + cost).sortedWith(MaintenanceRepository.ORDER))
+    }
+
+    fun deleteMaintenance(id: String) {
+        val current = _maintenance.value ?: return
+        setMaintenance(current.filter { it.id != id })
+    }
+
     // --- CSV ---
 
     fun exportCsv(uri: Uri) {
         val cars = _cars.value ?: return
         val entries = _entries.value ?: return
         val receipts = _receipts.value ?: return
+        val maintenance = _maintenance.value ?: return
         viewModelScope.launch(io) {
             try {
-                val text = Csv.write(cars, entries, receipts)
+                val text = Csv.write(cars, entries, receipts, maintenance)
                 val out = app.contentResolver.openOutputStream(uri, "wt") ?: error("Kein Ausgabestrom")
                 out.use {
                     it.write(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())) // BOM für Excel
                     it.write(text.toByteArray())
                 }
-                _snack.value = "CSV-Datei gespeichert: ${entries.size} Fahrten, ${receipts.size} Tankbelege."
+                _snack.value = str(R.string.csv_saved, entries.size, receipts.size, maintenance.size)
             } catch (e: Exception) {
-                _snack.value = "Die Datei konnte nicht gespeichert werden. Bitte einen anderen Speicherort wählen."
+                _snack.value = str(R.string.csv_save_failed)
             }
         }
     }
 
     /**
      * Ergänzt die Daten aus einer CSV-Datei. Autos werden über den Namen zugeordnet und bei Bedarf
-     * angelegt; ein vorhandener Monat wird ersetzt, ein identischer Tankbeleg übersprungen.
+     * angelegt; ein vorhandener Monat wird ersetzt, ein identischer Beleg übersprungen.
      */
     fun importCsv(uri: Uri) {
         viewModelScope.launch(io) {
@@ -228,24 +280,31 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                 null
             }
             if (text == null) {
-                _importReport.value = "Die Datei konnte nicht gelesen werden."
+                _importReport.value = str(R.string.import_unreadable)
                 return@launch
             }
             val parsed = try {
                 Csv.parse(text)
             } catch (e: Csv.FormatException) {
-                _importReport.value = e.message
+                _importReport.value = str(
+                    when (e.problem) {
+                        Csv.Problem.EMPTY -> R.string.import_empty
+                        Csv.Problem.MISSING_COLUMNS -> R.string.import_missing_columns
+                    },
+                )
                 return@launch
             }
 
             var cars = _cars.value ?: return@launch
             val entries = _entries.value?.toMutableList() ?: return@launch
             val receipts = _receipts.value?.toMutableList() ?: return@launch
+            val costs = _maintenance.value?.toMutableList() ?: return@launch
             val byName = cars.associateBy { it.name.lowercase() }.toMutableMap()
             val newCars = mutableListOf<String>()
+            val defaultName = str(R.string.default_car_name)
 
             fun carFor(rawName: String): Car {
-                val name = rawName.trim().ifBlank { "Mein Auto" }
+                val name = rawName.trim().ifBlank { defaultName }
                 return byName.getOrPut(name.lowercase()) {
                     Car(UUID.randomUUID().toString(), name, nextColorIndex(cars)).also {
                         cars = cars + it
@@ -285,22 +344,40 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                 }
             }
 
+            var maintAdded = 0
+            var maintSkipped = 0
+            parsed.maintenance.forEach { m ->
+                val car = carFor(m.car)
+                val duplicate = costs.any {
+                    it.carId == car.id && it.date == m.date && it.category == m.category && abs(it.amount - m.amount) < 0.005
+                }
+                if (duplicate) {
+                    maintSkipped++
+                } else {
+                    costs += MaintenanceCost(UUID.randomUUID().toString(), car.id, m.date, m.category, m.amount, m.note)
+                    maintAdded++
+                }
+            }
+
             setCars(cars)
             setEntries(entries.sortedBy { it.month })
             setReceipts(receipts.sortedWith(FuelRepository.RECEIPT_ORDER))
+            setMaintenance(costs.sortedWith(MaintenanceRepository.ORDER))
 
             _importReport.value = buildString {
-                append("Fahrten: $tripsAdded neu")
-                if (tripsReplaced > 0) append(", $tripsReplaced ersetzt")
-                append(".\nTankbelege: $fuelAdded neu")
-                if (fuelSkipped > 0) append(", $fuelSkipped schon vorhanden und übersprungen")
+                append(str(R.string.import_trips, tripsAdded))
+                if (tripsReplaced > 0) append(str(R.string.import_replaced, tripsReplaced))
+                append(".\n")
+                append(str(R.string.import_fuel, fuelAdded))
+                if (fuelSkipped > 0) append(str(R.string.import_skipped, fuelSkipped))
+                append(".\n")
+                append(str(R.string.import_maint, maintAdded))
+                if (maintSkipped > 0) append(str(R.string.import_skipped, maintSkipped))
                 append(".")
-                if (newCars.isNotEmpty()) append("\nNeu angelegte Autos: ${newCars.joinToString()}.")
+                if (newCars.isNotEmpty()) append("\n").append(str(R.string.import_new_cars, newCars.joinToString()))
                 if (parsed.badLines.isNotEmpty()) {
-                    val shown = parsed.badLines.take(10).joinToString()
-                    val more = if (parsed.badLines.size > 10) " …" else ""
-                    append("\n\n${parsed.badLines.size} Zeilen konnten nicht gelesen werden (Zeile $shown$more). ")
-                    append("Prüfe dort Typ, Datum bzw. Monat und die Zahlen.")
+                    val shown = parsed.badLines.take(10).joinToString() + if (parsed.badLines.size > 10) " …" else ""
+                    append("\n\n").append(str(R.string.import_bad_lines, parsed.badLines.size, shown))
                 }
             }
         }
@@ -331,6 +408,11 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         persist { fuelRepo.save(list) }
     }
 
+    private fun setMaintenance(list: List<MaintenanceCost>) {
+        _maintenance.value = list
+        persist { maintenanceRepo.save(list) }
+    }
+
     private fun setCares(list: List<CarCare>) {
         _cares.value = list
         persist { careRepo.save(list) }
@@ -341,7 +423,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
             try {
                 block()
             } catch (e: Exception) {
-                _snack.value = "Speichern fehlgeschlagen. Bitte noch einmal versuchen."
+                _snack.value = str(R.string.save_failed)
             }
         }
     }

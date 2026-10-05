@@ -13,13 +13,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -32,21 +27,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.kilometerbuch.R
 import de.kilometerbuch.data.Car
 import de.kilometerbuch.data.Entry
 import de.kilometerbuch.data.KM_RANGE
 import de.kilometerbuch.data.L100_RANGE
+import de.kilometerbuch.data.ODOMETER_RANGE
+import de.kilometerbuch.data.estimateOdometer
 import de.kilometerbuch.data.parseDecimal
 import de.kilometerbuch.data.parseKm
 import de.kilometerbuch.ui.theme.KilometerTheme
 import de.kilometerbuch.ui.theme.carColor
 import java.time.YearMonth
+import kotlin.math.abs
 
 /** Seite „Fahrten“. [selectedCar] ist null in der Gesamtansicht über alle Autos. */
 @Composable
@@ -60,6 +60,7 @@ fun TripsContent(
     onRangeChange: (ChartRange) -> Unit,
     contentPadding: PaddingValues,
     onEdit: (Entry) -> Unit,
+    onAdjustOdometer: (Car) -> Unit,
 ) {
     val shownCars = selectedCar?.let(::listOf) ?: cars
     val shownIds = shownCars.map { it.id }.toSet()
@@ -73,13 +74,19 @@ fun TripsContent(
         modifier = Modifier.fillMaxSize(),
     ) {
         item { TripsYearCard(shown, year, onYearChange, allCars = selectedCar == null) }
+        if (selectedCar != null) {
+            item { OdometerRow(estimateOdometer(selectedCar, entries)) { onAdjustOdometer(selectedCar) } }
+        }
 
         if (shown.isEmpty()) {
             item {
                 EmptyCard(
-                    if (selectedCar != null) "Für „${selectedCar.name}“ ist noch nichts eingetragen" else "Noch keine Einträge",
-                    "Tippe unten auf „Monat eintragen“ und gib ein, wie viele Kilometer du gefahren bist " +
-                        "und wie hoch der Verbrauch war. Danach siehst du hier den Verlauf als Diagramm.",
+                    if (selectedCar != null) {
+                        stringResource(R.string.trips_empty_title_car, selectedCar.name)
+                    } else {
+                        stringResource(R.string.trips_empty_title)
+                    },
+                    stringResource(R.string.trips_empty_text),
                 )
             }
         } else {
@@ -89,14 +96,15 @@ fun TripsContent(
             if (overview) {
                 item {
                     BreakdownCard(
-                        "Pro Auto in $year",
+                        stringResource(R.string.per_car_in_year, year),
                         cars.map { car ->
                             val st = yearStats(shown.filter { it.carId == car.id }, year)
                             BreakdownRow(
-                                color = carColor(car.colorIndex),
+                                color = carColor(car),
                                 name = car.name,
                                 value = "${fmtInt(st.total.toDouble())} km",
-                                detail = st.avgL100?.let { "Ø ${fmt1(it)} l/100 km" } ?: "Kein Verbrauch eingetragen",
+                                detail = st.avgL100?.let { stringResource(R.string.avg_consumption_value, fmt1(it)) }
+                                    ?: stringResource(R.string.no_consumption),
                             )
                         },
                     )
@@ -104,11 +112,14 @@ fun TripsContent(
             }
             item { RangeSelector(range, onRangeChange) }
             item {
-                ChartCard("Kilometer pro Monat", if (overview) "Gestapelt nach Auto" else null) { surface ->
+                ChartCard(
+                    stringResource(R.string.chart_km),
+                    if (overview) stringResource(R.string.stacked_by_car) else null,
+                ) { surface ->
                     MonthChart(
                         months = months,
                         series = shownCars.map { car ->
-                            ChartSeries(car.name, carColor(car.colorIndex), months.map { byKey[car.id to it]?.km?.toFloat() })
+                            ChartSeries(car.name, carColor(car), months.map { byKey[car.id to it]?.km?.toFloat() })
                         }.filter { s -> s.values.any { it != null } },
                         kind = ChartKind.Bars,
                         unit = "km",
@@ -119,9 +130,12 @@ fun TripsContent(
                 }
             }
             item {
-                ChartCard("Verbrauch", if (overview) "Eine Linie pro Auto" else null) { surface ->
+                ChartCard(
+                    stringResource(R.string.chart_consumption),
+                    if (overview) stringResource(R.string.one_line_per_car) else null,
+                ) { surface ->
                     val series = shownCars.map { car ->
-                        ChartSeries(car.name, carColor(car.colorIndex), months.map { byKey[car.id to it]?.l100?.toFloat() })
+                        ChartSeries(car.name, carColor(car), months.map { byKey[car.id to it]?.l100?.toFloat() })
                     }.filter { s -> s.values.any { it != null } }
                     if (series.isNotEmpty()) {
                         MonthChart(
@@ -134,7 +148,7 @@ fun TripsContent(
                         )
                     } else {
                         Text(
-                            "In diesem Zeitraum ist kein Verbrauch eingetragen.",
+                            stringResource(R.string.no_consumption_range),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -142,7 +156,11 @@ fun TripsContent(
                 }
             }
             item {
-                Text("Einträge", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+                Text(
+                    stringResource(R.string.entries_header),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
             }
             val sorted = shown.sortedWith(compareByDescending<Entry> { it.month }.thenBy { carsById[it.carId]?.name })
             items(sorted, key = { "${it.carId}/${it.month}" }) { entry ->
@@ -153,13 +171,29 @@ fun TripsContent(
     }
 }
 
+/** Kleine Zeile mit dem geschätzten Tachostand und der Möglichkeit, ihn abzugleichen. */
+@Composable
+private fun OdometerRow(odometer: Int?, onAdjust: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(start = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            odometer?.let { stringResource(R.string.odometer_row, fmtInt(it.toDouble())) } ?: stringResource(R.string.odometer_unknown),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = onAdjust) {
+            Text(stringResource(if (odometer != null) R.string.odometer_adjust else R.string.odometer_enter))
+        }
+    }
+}
+
 @Composable
 private fun TripsYearCard(entries: List<Entry>, year: Int, onYearChange: (Int) -> Unit, allCars: Boolean) {
     val years = entries.map { it.month.year } + YearMonth.now().year
     val stats = yearStats(entries, year)
 
     YearCard {
-        YearHeader(if (allCars) "Gefahren, alle Autos" else "Gefahren", year, years, onYearChange)
+        YearHeader(stringResource(if (allCars) R.string.driven_title_all else R.string.driven_title), year, years, onYearChange)
         Column {
             Row {
                 Text(
@@ -172,18 +206,18 @@ private fun TripsYearCard(entries: List<Entry>, year: Int, onYearChange: (Int) -
                 Text("km", style = MaterialTheme.typography.titleLarge, modifier = Modifier.alignByBaseline())
             }
             Text(
-                when (stats.months) {
-                    0 -> "In $year noch kein Monat eingetragen"
-                    1 -> "aus 1 Monat"
-                    else -> "aus ${stats.months} Monaten"
+                if (stats.months == 0) {
+                    stringResource(R.string.months_none, year)
+                } else {
+                    pluralStringResource(R.plurals.months_from, stats.months, stats.months)
                 },
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
         Row(Modifier.fillMaxWidth()) {
-            Stat("Ø pro Monat", stats.avgKm?.let(::fmtInt), "km", Modifier.weight(1f))
-            Stat("Ø Verbrauch", stats.avgL100?.let(::fmt1), "l/100 km", Modifier.weight(1f))
-            Stat("Sprit ca.", stats.liters?.let(::fmtInt), "Liter", Modifier.weight(1f))
+            Stat(stringResource(R.string.stat_avg_month), stats.avgKm?.let(::fmtInt), "km", Modifier.weight(1f))
+            Stat(stringResource(R.string.stat_avg_consumption), stats.avgL100?.let(::fmt1), "l/100 km", Modifier.weight(1f))
+            Stat(stringResource(R.string.stat_fuel_approx), stats.liters?.let(::fmtInt), stringResource(R.string.unit_liters), Modifier.weight(1f))
         }
     }
 }
@@ -199,14 +233,15 @@ private fun EntryRow(entry: Entry, car: Car?, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (car != null) {
-            ColorDot(carColor(car.colorIndex))
+            ColorDot(carColor(car))
             Spacer(Modifier.width(12.dp))
         }
         Column(Modifier.weight(1f)) {
             Text(monthLong(entry.month), style = MaterialTheme.typography.bodyLarge)
-            val consumption = entry.l100?.let { "${fmt1(it)} l/100 km" } ?: "Kein Verbrauch eingetragen"
+            val consumption = entry.l100?.let { stringResource(R.string.consumption_value, fmt1(it)) }
+                ?: stringResource(R.string.no_consumption)
             Text(
-                if (car != null) "${car.name} · $consumption" else consumption,
+                if (car != null) stringResource(R.string.car_and_detail, car.name, consumption) else consumption,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -238,47 +273,30 @@ fun EntryDialog(
     val km = parseKm(kmText)
     val l100 = parseDecimal(l100Text)
     val kmError = when {
-        kmText.isBlank() -> "Bitte die gefahrenen Kilometer eintragen."
-        km == null || km !in KM_RANGE -> "Bitte eine ganze Zahl zwischen 0 und 100.000 eingeben."
+        kmText.isBlank() -> R.string.err_km_empty
+        km == null || km !in KM_RANGE -> R.string.err_km_range
         else -> null
     }
-    val l100Error = if (l100Text.isNotBlank() && (l100 == null || l100 !in L100_RANGE)) {
-        "Bitte einen Wert zwischen 0,5 und 50 eingeben, z. B. 6,4."
-    } else {
-        null
-    }
+    val l100Error = if (l100Text.isNotBlank() && (l100 == null || l100 !in L100_RANGE)) R.string.err_l100_range else null
     val isOriginalSlot = original != null && original.carId == carId && original.month == month
     val overwrites = !isOriginalSlot && existing.any { it.carId == carId && it.month == month }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (original == null) "Monat eintragen" else "Eintrag bearbeiten") },
+        title = { Text(stringResource(if (original == null) R.string.add_month else R.string.entry_edit)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CarPicker(cars, carId) { carId = it }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { month = month.minusMonths(1) }) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Vorheriger Monat")
-                    }
-                    Text(
-                        monthLong(month),
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1f),
-                    )
-                    IconButton(onClick = { month = month.plusMonths(1) }, enabled = month < YearMonth.now()) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Nächster Monat")
-                    }
-                }
+                MonthStepper(month, { month = it }, max = YearMonth.now())
                 OutlinedTextField(
                     value = kmText,
                     onValueChange = { kmText = it },
-                    label = { Text("Gefahren") },
+                    label = { Text(stringResource(R.string.driven)) },
                     suffix = { Text("km") },
                     singleLine = true,
                     isError = showErrors && kmError != null,
                     supportingText = if (showErrors && kmError != null) {
-                        { Text(kmError) }
+                        { Text(stringResource(kmError)) }
                     } else {
                         null
                     },
@@ -288,12 +306,12 @@ fun EntryDialog(
                 OutlinedTextField(
                     value = l100Text,
                     onValueChange = { l100Text = it },
-                    label = { Text("Verbrauch (optional)") },
+                    label = { Text(stringResource(R.string.consumption_optional)) },
                     suffix = { Text("l/100 km") },
                     singleLine = true,
                     isError = showErrors && l100Error != null,
                     supportingText = if (showErrors && l100Error != null) {
-                        { Text(l100Error) }
+                        { Text(stringResource(l100Error)) }
                     } else {
                         null
                     },
@@ -302,7 +320,7 @@ fun EntryDialog(
                 )
                 if (overwrites) {
                     Text(
-                        "Für ${monthLong(month)} gibt es schon einen Eintrag. Er wird ersetzt.",
+                        stringResource(R.string.entry_overwrites, monthLong(month)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.tertiary,
                     )
@@ -316,25 +334,98 @@ fun EntryDialog(
                 } else {
                     showErrors = true
                 }
-            }) { Text("Speichern") }
+            }) { Text(stringResource(R.string.save)) }
         },
         dismissButton = {
             Row {
                 if (original != null) {
                     TextButton(onClick = onDelete) {
-                        Text("Löschen", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                     }
                 }
-                TextButton(onClick = onDismiss) { Text("Abbrechen") }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
             }
         },
+    )
+}
+
+/**
+ * Echten Tachostand eintragen. Die Differenz zur Schätzung wird dem gewählten Monat angerechnet;
+ * vorbelegt ist der zuletzt eingetragene Monat dieses Autos.
+ */
+@Composable
+fun OdometerDialog(
+    car: Car,
+    entries: List<Entry>,
+    onDismiss: () -> Unit,
+    onSave: (actual: Int, month: YearMonth) -> Unit,
+) {
+    val estimate = estimateOdometer(car, entries)
+    val lastMonth = entries.filter { it.carId == car.id }.maxOfOrNull { it.month }
+    var month by remember { mutableStateOf(lastMonth ?: YearMonth.now().minusMonths(1)) }
+    var text by remember { mutableStateOf("") }
+    var showErrors by remember { mutableStateOf(false) }
+
+    val actual = parseKm(text)
+    val valid = actual != null && actual in ODOMETER_RANGE
+    val diff = if (valid && estimate != null) actual!! - estimate else null
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.odo_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (estimate != null) {
+                    Text(
+                        stringResource(R.string.odo_estimate, fmtInt(estimate.toDouble())),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(stringResource(R.string.odo_current)) },
+                    suffix = { Text("km") },
+                    singleLine = true,
+                    isError = (showErrors || text.isNotBlank()) && !valid,
+                    supportingText = if ((showErrors || text.isNotBlank()) && !valid) {
+                        { Text(stringResource(R.string.err_whole_number)) }
+                    } else {
+                        null
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (estimate != null) {
+                    Text(stringResource(R.string.odo_month_label), style = MaterialTheme.typography.labelLarge)
+                    MonthStepper(month, { month = it }, max = YearMonth.now())
+                }
+                val note = when {
+                    estimate == null -> stringResource(R.string.odo_first)
+                    diff == null -> null
+                    diff > 0 -> stringResource(R.string.odo_plus, fmtInt(diff.toDouble()), monthLong(month))
+                    diff < 0 -> stringResource(R.string.odo_minus, fmtInt(abs(diff).toDouble()), monthLong(month))
+                    else -> stringResource(R.string.odo_equal)
+                }
+                if (note != null) {
+                    Text(note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { if (valid) onSave(actual!!, month) else showErrors = true }) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
 // --- Vorschau in Android Studio (Split/Design-Ansicht), nur mit Beispieldaten ---
 
 internal val previewCars = listOf(
-    Car("golf", "Golf", 0),
+    Car("golf", "Golf", 0, odometerKm = 46_500, odometerMonth = YearMonth.of(2026, 6)),
     Car("firma", "Firmenwagen", 1),
 )
 
@@ -354,7 +445,7 @@ private val previewEntries = listOf(
 private fun TripsPreview() {
     KilometerTheme {
         Surface {
-            TripsContent(previewCars, previewEntries, previewCars[0], 2026, {}, ChartRange.M12, {}, PaddingValues(16.dp), {})
+            TripsContent(previewCars, previewEntries, previewCars[0], 2026, {}, ChartRange.M12, {}, PaddingValues(16.dp), {}, {})
         }
     }
 }
@@ -369,18 +460,15 @@ private fun TripsPreview() {
 private fun TripsAllPreview() {
     KilometerTheme {
         Surface {
-            TripsContent(previewCars, previewEntries, null, 2026, {}, ChartRange.M12, {}, PaddingValues(16.dp), {})
+            TripsContent(previewCars, previewEntries, null, 2026, {}, ChartRange.M12, {}, PaddingValues(16.dp), {}, {})
         }
     }
 }
 
-@Preview(name = "Monat eintragen")
+@Preview(name = "Kilometerstand abgleichen")
 @Composable
-private fun EntryDialogPreview() {
+private fun OdometerDialogPreview() {
     KilometerTheme {
-        EntryDialog(
-            original = null, cars = previewCars, initialCarId = "golf", existing = previewEntries,
-            onDismiss = {}, onSave = {}, onDelete = {},
-        )
+        OdometerDialog(car = previewCars[0], entries = previewEntries, onDismiss = {}, onSave = { _, _ -> })
     }
 }

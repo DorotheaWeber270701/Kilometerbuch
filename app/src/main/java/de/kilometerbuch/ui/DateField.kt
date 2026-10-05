@@ -16,11 +16,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.res.stringResource
+import de.kilometerbuch.R
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Locale
-
-private val LONG_DATE = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy", Locale.GERMAN)
 
 /** Zeigt getippte Ziffern als TT.MM.JJJJ an; die Punkte setzt das Feld selbst. */
 private object DateDotsTransformation : VisualTransformation {
@@ -70,14 +69,14 @@ fun DateField(
     modifier: Modifier = Modifier,
     showErrors: Boolean = false,
     /** Zusätzliche Prüfung, z. B. „nicht in der Zukunft“; gibt einen Fehlertext oder null zurück. */
-    validate: (LocalDate) -> String? = { null },
+    validate: @Composable (LocalDate) -> String? = { null },
 ) {
     var digits by remember { mutableStateOf(value?.toDigits() ?: "") }
     val parsed = parseDigits(digits)
     val problem = when {
-        digits.length == 8 && parsed == null -> "Dieses Datum gibt es nicht."
+        digits.length == 8 && parsed == null -> stringResource(R.string.date_invalid)
         parsed != null -> validate(parsed)
-        showErrors -> "Bitte das Datum als TT.MM.JJJJ eingeben, z. B. 14102026."
+        showErrors -> stringResource(R.string.date_format_error)
         else -> null
     }
 
@@ -90,17 +89,17 @@ fun DateField(
         value = digits,
         onValueChange = { input -> set(input.filter(Char::isDigit).take(8)) },
         label = { Text(label) },
-        placeholder = { Text("TT.MM.JJJJ") },
+        placeholder = { Text(stringResource(R.string.date_placeholder)) },
         singleLine = true,
         visualTransformation = DateDotsTransformation,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-        trailingIcon = { TextButton(onClick = { set(LocalDate.now().toDigits()) }) { Text("Heute") } },
+        trailingIcon = { TextButton(onClick = { set(LocalDate.now().toDigits()) }) { Text(stringResource(R.string.today)) } },
         isError = problem != null,
         supportingText = {
             when {
                 problem != null -> Text(problem)
-                parsed != null -> Text(parsed.format(LONG_DATE))
-                else -> Text("Nur Ziffern tippen, die Punkte kommen von selbst.")
+                parsed != null -> Text(fmtLongDate(parsed))
+                else -> Text(stringResource(R.string.date_typing_hint))
             }
         },
         modifier = modifier,

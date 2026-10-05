@@ -1,27 +1,44 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Upload-Schlüssel für den Play Store. Datei und Schlüssel liegen nur lokal (siehe .gitignore).
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use(::load)
+}
+
 android {
     namespace = "de.kilometerbuch"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "de.kilometerbuch"
+        applicationId = "de.penguin.development.kilometerbuch"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 36
+        versionCode = 2
+        versionName = "1.1"
+    }
+
+    signingConfigs {
+        if (keystoreProperties.isNotEmpty()) {
+            create("upload") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Nur für den Eigengebrauch: mit dem Debug-Schlüssel signieren,
-            // damit die Release-APK direkt installiert werden kann.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("upload")
         }
     }
 

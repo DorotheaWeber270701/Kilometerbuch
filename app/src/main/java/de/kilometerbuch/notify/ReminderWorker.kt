@@ -18,6 +18,9 @@ import de.kilometerbuch.R
 import de.kilometerbuch.data.CarRepository
 import de.kilometerbuch.data.CareRepository
 import de.kilometerbuch.data.EntryRepository
+import de.kilometerbuch.data.Settings
+import de.kilometerbuch.i18n.L10n
+import de.kilometerbuch.i18n.resolve
 import de.kilometerbuch.ui.Urgency
 import de.kilometerbuch.ui.reminders
 import java.time.LocalDate
@@ -32,7 +35,8 @@ class ReminderWorker(context: Context, params: WorkerParameters) : Worker(contex
 
     @SuppressLint("MissingPermission") // geprüft über areNotificationsEnabled()
     override fun doWork(): Result {
-        val ctx = applicationContext
+        // Texte und Zahlen in der App-Sprache.
+        val ctx = L10n.wrap(applicationContext, Settings(applicationContext).language)
         val manager = NotificationManagerCompat.from(ctx)
         if (!manager.areNotificationsEnabled()) return Result.success()
 
@@ -58,19 +62,23 @@ class ReminderWorker(context: Context, params: WorkerParameters) : Worker(contex
                         val days = ChronoUnit.DAYS.between(today, appointment)
                         if (days !in 0..1) return@forEach
                         key = "${car.id}/HU-termin/$appointment"
-                        title = "${car.name}: TÜV-Termin ${if (days == 0L) "heute" else "morgen"}"
+                        title = ctx.getString(if (days == 0L) R.string.notif_appt_today else R.string.notif_appt_tomorrow, car.name)
                     } else {
                         if (reminder.urgency == Urgency.LATER) return@forEach
                         key = "${reminder.key}/${reminder.urgency}"
-                        title = "${car.name}: ${reminder.kind.title}" +
-                            if (reminder.urgency == Urgency.OVERDUE) " überfällig" else ""
+                        title = ctx.getString(
+                            if (reminder.urgency == Urgency.OVERDUE) R.string.notif_title_overdue else R.string.notif_title,
+                            car.name,
+                            ctx.getString(reminder.kind.title),
+                        )
                     }
                     if (key in sent) return@forEach
+                    val headline = reminder.headline.resolve(ctx)
                     val notification = NotificationCompat.Builder(ctx, CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_car)
                         .setContentTitle(title)
-                        .setContentText(reminder.headline)
-                        .setStyle(NotificationCompat.BigTextStyle().bigText("${reminder.headline}\n${reminder.detail}"))
+                        .setContentText(headline)
+                        .setStyle(NotificationCompat.BigTextStyle().bigText("$headline\n${reminder.detail.resolve(ctx)}"))
                         .setContentIntent(openAppIntent(ctx))
                         .setAutoCancel(true)
                         .build()
@@ -96,8 +104,8 @@ class ReminderWorker(context: Context, params: WorkerParameters) : Worker(contex
         }
 
         private fun ensureChannel(context: Context) {
-            val channel = NotificationChannel(CHANNEL_ID, "Termine", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "Erinnerungen an HU, Inspektion und Reifenwechsel"
+            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.notif_channel), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = context.getString(R.string.notif_channel_desc)
             }
             context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }

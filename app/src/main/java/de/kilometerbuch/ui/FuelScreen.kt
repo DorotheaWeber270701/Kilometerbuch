@@ -1,8 +1,11 @@
 package de.kilometerbuch.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,10 +15,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,14 +37,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.kilometerbuch.R
+import de.kilometerbuch.data.AMOUNT_RANGE
 import de.kilometerbuch.data.Car
 import de.kilometerbuch.data.FuelReceipt
 import de.kilometerbuch.data.LITERS_RANGE
+import de.kilometerbuch.data.MaintenanceCategory
+import de.kilometerbuch.data.MaintenanceCost
 import de.kilometerbuch.data.TOTAL_RANGE
 import de.kilometerbuch.data.parseDecimal
 import de.kilometerbuch.ui.theme.KilometerTheme
@@ -44,11 +60,12 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-/** Seite „Tanken“. [selectedCar] ist null in der Gesamtansicht über alle Autos. */
+/** Seite „Tanken“ mit Wartungskosten. [selectedCar] ist null in der Gesamtansicht über alle Autos. */
 @Composable
 fun FuelContent(
     cars: List<Car>,
     receipts: List<FuelReceipt>,
+    maintenance: List<MaintenanceCost>,
     selectedCar: Car?,
     year: Int,
     onYearChange: (Int) -> Unit,
@@ -56,10 +73,13 @@ fun FuelContent(
     onRangeChange: (ChartRange) -> Unit,
     contentPadding: PaddingValues,
     onEdit: (FuelReceipt) -> Unit,
+    onAddMaintenance: () -> Unit,
+    onEditMaintenance: (MaintenanceCost) -> Unit,
 ) {
     val shownCars = selectedCar?.let(::listOf) ?: cars
     val shownIds = shownCars.map { it.id }.toSet()
     val shown = receipts.filter { it.carId in shownIds }
+    val shownMaintenance = maintenance.filter { it.carId in shownIds }
     val carsById = cars.associateBy { it.id }
     val overview = selectedCar == null && cars.size > 1
 
@@ -73,9 +93,12 @@ fun FuelContent(
         if (shown.isEmpty()) {
             item {
                 EmptyCard(
-                    if (selectedCar != null) "Für „${selectedCar.name}“ gibt es noch keine Tankbelege" else "Noch keine Tankbelege",
-                    "Tippe unten auf „Tankbeleg eintragen“ und gib die getankten Liter und den Gesamtbetrag ein. " +
-                        "Den Preis pro Liter rechnet die App selbst aus.",
+                    if (selectedCar != null) {
+                        stringResource(R.string.fuel_empty_title_car, selectedCar.name)
+                    } else {
+                        stringResource(R.string.fuel_empty_title)
+                    },
+                    stringResource(R.string.fuel_empty_text),
                 )
             }
         } else {
@@ -86,17 +109,17 @@ fun FuelContent(
             if (overview) {
                 item {
                     BreakdownCard(
-                        "Pro Auto in $year",
+                        stringResource(R.string.per_car_in_year, year),
                         cars.map { car ->
                             val st = fuelYearStats(shown.filter { it.carId == car.id }, year)
                             BreakdownRow(
-                                color = carColor(car.colorIndex),
+                                color = carColor(car),
                                 name = car.name,
                                 value = "${fmt2(st.euros)} €",
                                 detail = if (st.receipts == 0) {
-                                    "Kein Tankbeleg"
+                                    stringResource(R.string.no_receipt)
                                 } else {
-                                    "${fmtInt(st.liters)} l · Ø ${st.avgPrice?.let(::fmt3) ?: "–"} €/l"
+                                    stringResource(R.string.liters_avg_price, fmtInt(st.liters), st.avgPrice?.let(::fmt3) ?: "–")
                                 },
                             )
                         },
@@ -106,13 +129,13 @@ fun FuelContent(
             item { RangeSelector(range, onRangeChange) }
             item {
                 ChartCard(
-                    "Ausgaben pro Monat",
-                    if (overview) "Gestapelt nach Auto · gestrichelt: Durchschnitt pro Monat" else "Gestrichelt: Durchschnitt pro Monat",
+                    stringResource(R.string.chart_spend),
+                    stringResource(if (overview) R.string.chart_spend_sub_stacked else R.string.chart_spend_sub),
                 ) { surface ->
                     MonthChart(
                         months = months,
                         series = shownCars.map { car ->
-                            ChartSeries(car.name, carColor(car.colorIndex), months.map { perCar[car.id]?.get(it)?.euros?.toFloat() })
+                            ChartSeries(car.name, carColor(car), months.map { perCar[car.id]?.get(it)?.euros?.toFloat() })
                         }.filter { s -> s.values.any { it != null } },
                         kind = ChartKind.Bars,
                         unit = "€",
@@ -125,15 +148,15 @@ fun FuelContent(
             }
             item {
                 ChartCard(
-                    "Preis pro Liter",
-                    if (selectedCar == null) "Alle Autos zusammen, Durchschnitt aller Belege im Monat" else "Durchschnitt aller Belege im Monat",
+                    stringResource(R.string.chart_price),
+                    stringResource(if (selectedCar == null) R.string.chart_price_sub_all else R.string.chart_price_sub),
                 ) { surface ->
                     MonthChart(
                         months = months,
                         series = listOf(
                             ChartSeries(
-                                name = selectedCar?.name ?: "Alle Autos",
-                                color = selectedCar?.let { carColor(it.colorIndex) } ?: allCarsColor(),
+                                name = selectedCar?.name ?: stringResource(R.string.all_cars),
+                                color = selectedCar?.let { carColor(it) } ?: allCarsColor(),
                                 values = months.map { combined[it]?.pricePerLiter?.toFloat() },
                             ),
                         ),
@@ -146,11 +169,42 @@ fun FuelContent(
                 }
             }
             item {
-                Text("Tankbelege", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+                Text(
+                    stringResource(R.string.receipts_header),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
             }
             items(shown.asReversed(), key = { it.id }) { receipt ->
                 ReceiptRow(receipt, if (overview) carsById[receipt.carId] else null) { onEdit(receipt) }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            }
+        }
+
+        // Wartung: bewusst klein am Ende der Seite.
+        item {
+            Column(Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(stringResource(R.string.maint_header), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (shownMaintenance.isEmpty()) {
+                        stringResource(R.string.maint_empty)
+                    } else {
+                        stringResource(R.string.maint_sum, fmt2(maintenanceSum(shownMaintenance, year)), year)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        items(shownMaintenance.asReversed(), key = { "wartung-${it.id}" }) { cost ->
+            MaintenanceRow(cost, if (overview) carsById[cost.carId] else null) { onEditMaintenance(cost) }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        }
+        item {
+            OutlinedButton(onClick = onAddMaintenance, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Filled.Add, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.maint_add))
             }
         }
     }
@@ -162,7 +216,7 @@ private fun FuelYearCard(receipts: List<FuelReceipt>, year: Int, onYearChange: (
     val stats = fuelYearStats(receipts, year)
 
     YearCard {
-        YearHeader(if (allCars) "Ausgaben, alle Autos" else "Ausgaben", year, years, onYearChange)
+        YearHeader(stringResource(if (allCars) R.string.spend_title_all else R.string.spend_title), year, years, onYearChange)
         Column {
             Row {
                 Text(
@@ -175,18 +229,23 @@ private fun FuelYearCard(receipts: List<FuelReceipt>, year: Int, onYearChange: (
                 Text("€", style = MaterialTheme.typography.titleLarge, modifier = Modifier.alignByBaseline())
             }
             Text(
-                when (stats.receipts) {
-                    0 -> "In $year noch nicht getankt"
-                    1 -> "aus 1 Tankbeleg"
-                    else -> "aus ${stats.receipts} Tankbelegen"
+                if (stats.receipts == 0) {
+                    stringResource(R.string.receipts_none, year)
+                } else {
+                    pluralStringResource(R.plurals.receipts_from, stats.receipts, stats.receipts)
                 },
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
         Row(Modifier.fillMaxWidth()) {
-            Stat("Ø pro Monat", stats.avgPerMonth?.let(::fmt2), "€", Modifier.weight(1f))
-            Stat("Ø Preis", stats.avgPrice?.let(::fmt3), "€/l", Modifier.weight(1f))
-            Stat("Getankt", if (stats.receipts == 0) null else fmtInt(stats.liters), "Liter", Modifier.weight(1f))
+            Stat(stringResource(R.string.stat_avg_month), stats.avgPerMonth?.let(::fmt2), "€", Modifier.weight(1f))
+            Stat(stringResource(R.string.stat_avg_price), stats.avgPrice?.let(::fmt3), "€/l", Modifier.weight(1f))
+            Stat(
+                stringResource(R.string.stat_refueled),
+                if (stats.receipts == 0) null else fmtInt(stats.liters),
+                stringResource(R.string.unit_liters),
+                Modifier.weight(1f),
+            )
         }
     }
 }
@@ -202,14 +261,14 @@ private fun ReceiptRow(receipt: FuelReceipt, car: Car?, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (car != null) {
-            ColorDot(carColor(car.colorIndex))
+            ColorDot(carColor(car))
             Spacer(Modifier.width(12.dp))
         }
         Column(Modifier.weight(1f)) {
             Text(fmtDate(receipt.date), style = MaterialTheme.typography.bodyLarge)
-            val details = "${fmt2(receipt.liters)} l · ${fmt3(receipt.pricePerLiter)} €/l"
+            val details = stringResource(R.string.receipt_details, fmt2(receipt.liters), fmt3(receipt.pricePerLiter))
             Text(
-                if (car != null) "${car.name} · $details" else details,
+                if (car != null) stringResource(R.string.car_and_detail, car.name, details) else details,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -219,6 +278,37 @@ private fun ReceiptRow(receipt: FuelReceipt, car: Car?, onClick: () -> Unit) {
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
+    }
+}
+
+@StringRes
+fun MaintenanceCategory.label(): Int = when (this) {
+    MaintenanceCategory.INSPECTION -> R.string.maint_cat_inspection
+    MaintenanceCategory.REPAIR -> R.string.maint_cat_repair
+    MaintenanceCategory.TIRES -> R.string.maint_cat_tires
+    MaintenanceCategory.HU -> R.string.maint_cat_hu
+    MaintenanceCategory.OTHER -> R.string.maint_cat_other
+}
+
+@Composable
+private fun MaintenanceRow(cost: MaintenanceCost, car: Car?, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (car != null) {
+            ColorDot(carColor(car))
+            Spacer(Modifier.width(12.dp))
+        }
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(cost.category.label()), style = MaterialTheme.typography.bodyLarge)
+            val details = listOfNotNull(car?.name, fmtDate(cost.date), cost.note).joinToString(" · ")
+            Text(details, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text("${fmt2(cost.amount)} €", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -240,13 +330,13 @@ fun ReceiptDialog(
     val liters = parseDecimal(litersText)
     val total = parseDecimal(totalText)
     val litersError = when {
-        litersText.isBlank() -> "Bitte die getankten Liter eintragen."
-        liters == null || liters !in LITERS_RANGE -> "Bitte einen Wert zwischen 0,5 und 300 eingeben, z. B. 42,5."
+        litersText.isBlank() -> R.string.err_liters_empty
+        liters == null || liters !in LITERS_RANGE -> R.string.err_liters_range
         else -> null
     }
     val totalError = when {
-        totalText.isBlank() -> "Bitte den Gesamtbetrag eintragen."
-        total == null || total !in TOTAL_RANGE -> "Bitte einen Betrag zwischen 0,50 und 2.000 € eingeben, z. B. 76,03."
+        totalText.isBlank() -> R.string.err_total_empty
+        total == null || total !in TOTAL_RANGE -> R.string.err_total_range
         else -> null
     }
     val today = LocalDate.now()
@@ -254,57 +344,29 @@ fun ReceiptDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (original == null) "Tankbeleg eintragen" else "Tankbeleg bearbeiten") },
+        title = { Text(stringResource(if (original == null) R.string.add_receipt else R.string.receipt_edit)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CarPicker(cars, carId) { carId = it }
                 DateField(
                     value = date,
                     onValueChange = { date = it },
-                    label = "Datum",
+                    label = stringResource(R.string.date),
                     showErrors = showErrors,
-                    validate = { if (it.isAfter(today)) "Das Datum liegt in der Zukunft." else null },
+                    validate = { if (it.isAfter(today)) stringResource(R.string.err_date_future) else null },
                     modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedTextField(
-                    value = litersText,
-                    onValueChange = { litersText = it },
-                    label = { Text("Getankt") },
-                    suffix = { Text("l") },
-                    singleLine = true,
-                    isError = showErrors && litersError != null,
-                    supportingText = if (showErrors && litersError != null) {
-                        { Text(litersError) }
-                    } else {
-                        null
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = totalText,
-                    onValueChange = { totalText = it },
-                    label = { Text("Gesamtkosten") },
-                    suffix = { Text("€") },
-                    singleLine = true,
-                    isError = showErrors && totalError != null,
-                    supportingText = if (showErrors && totalError != null) {
-                        { Text(totalError) }
-                    } else {
-                        null
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                DecimalField(litersText, { litersText = it }, R.string.refueled_amount, "l", if (showErrors) litersError else null)
+                DecimalField(totalText, { totalText = it }, R.string.total_cost, "€", if (showErrors) totalError else null, last = true)
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "Preis pro Liter",
+                        stringResource(R.string.price_per_liter),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                     )
                     Text(
-                        price?.let { "${fmt3(it)} €/l" } ?: "wird berechnet",
+                        price?.let { "${fmt3(it)} €/l" } ?: stringResource(R.string.price_calculated),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = if (price != null) FontWeight.SemiBold else FontWeight.Normal,
                     )
@@ -319,19 +381,121 @@ fun ReceiptDialog(
                 } else {
                     showErrors = true
                 }
-            }) { Text("Speichern") }
+            }) { Text(stringResource(R.string.save)) }
         },
-        dismissButton = {
-            Row {
-                if (original != null) {
-                    TextButton(onClick = onDelete) {
-                        Text("Löschen", color = MaterialTheme.colorScheme.error)
+        dismissButton = { DeleteAndCancel(original != null, onDelete, onDismiss) },
+    )
+}
+
+/** Wartungskosten erfassen oder bearbeiten. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun MaintenanceDialog(
+    original: MaintenanceCost?,
+    cars: List<Car>,
+    initialCarId: String,
+    onDismiss: () -> Unit,
+    onSave: (MaintenanceCost) -> Unit,
+    onDelete: () -> Unit,
+) {
+    var carId by remember { mutableStateOf(original?.carId ?: initialCarId) }
+    var date by remember { mutableStateOf<LocalDate?>(original?.date ?: LocalDate.now()) }
+    var category by remember { mutableStateOf(original?.category ?: MaintenanceCategory.INSPECTION) }
+    var amountText by remember { mutableStateOf(original?.amount?.let(::decimalInput) ?: "") }
+    var note by remember { mutableStateOf(original?.note ?: "") }
+    var showErrors by remember { mutableStateOf(false) }
+
+    val amount = parseDecimal(amountText)
+    val amountError = when {
+        amountText.isBlank() -> R.string.err_amount_empty
+        amount == null || amount !in AMOUNT_RANGE -> R.string.err_amount_range
+        else -> null
+    }
+    val today = LocalDate.now()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(if (original == null) R.string.maint_add else R.string.maint_edit)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                CarPicker(cars, carId) { carId = it }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MaintenanceCategory.entries.forEach { c ->
+                        FilterChip(selected = category == c, onClick = { category = c }, label = { Text(stringResource(c.label())) })
                     }
                 }
-                TextButton(onClick = onDismiss) { Text("Abbrechen") }
+                DateField(
+                    value = date,
+                    onValueChange = { date = it },
+                    label = stringResource(R.string.date),
+                    showErrors = showErrors,
+                    validate = { if (it.isAfter(today)) stringResource(R.string.err_date_future) else null },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                DecimalField(amountText, { amountText = it }, R.string.maint_amount, "€", if (showErrors) amountError else null)
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it.take(80) },
+                    label = { Text(stringResource(R.string.maint_note)) },
+                    placeholder = { Text(stringResource(R.string.maint_note_placeholder)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         },
+        confirmButton = {
+            TextButton(onClick = {
+                val day = date
+                if (day != null && !day.isAfter(today) && amount != null && amountError == null) {
+                    onSave(
+                        MaintenanceCost(
+                            original?.id ?: UUID.randomUUID().toString(),
+                            carId, day, category, amount, note.trim().ifBlank { null },
+                        ),
+                    )
+                } else {
+                    showErrors = true
+                }
+            }) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = { DeleteAndCancel(original != null, onDelete, onDismiss) },
     )
+}
+
+/** Eingabefeld für Kommazahlen mit Einheit; [error] ist eine Text-Id oder null. */
+@Composable
+private fun DecimalField(
+    value: String,
+    onChange: (String) -> Unit,
+    @StringRes label: Int,
+    unit: String,
+    @StringRes error: Int?,
+    last: Boolean = false,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text(stringResource(label)) },
+        suffix = { Text(unit) },
+        singleLine = true,
+        isError = error != null,
+        supportingText = error?.let { { Text(stringResource(it)) } },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = if (last) ImeAction.Done else ImeAction.Next),
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun DeleteAndCancel(canDelete: Boolean, onDelete: () -> Unit, onDismiss: () -> Unit) {
+    Row {
+        if (canDelete) {
+            TextButton(onClick = onDelete) {
+                Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+            }
+        }
+        TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+    }
 }
 
 // --- Vorschau in Android Studio (Split/Design-Ansicht), nur mit Beispieldaten ---
@@ -353,12 +517,20 @@ private val previewReceipts = listOf(
     Triple(LocalDate.of(2026, 9, 16), 40.9, 72.36),
 ).mapIndexed { i, (d, l, eur) -> FuelReceipt("p$i", if (i % 3 == 0) "firma" else "golf", d, l, eur) }
 
-@Preview(name = "Tanken, ein Auto", showBackground = true, heightDp = 1600)
+private val previewMaintenance = listOf(
+    MaintenanceCost("m1", "golf", LocalDate.of(2026, 3, 12), MaintenanceCategory.INSPECTION, 289.90, "Ölwechsel"),
+    MaintenanceCost("m2", "golf", LocalDate.of(2026, 10, 1), MaintenanceCategory.TIRES, 64.00),
+)
+
+@Preview(name = "Tanken, ein Auto", showBackground = true, heightDp = 2000)
 @Composable
 private fun FuelPreview() {
     KilometerTheme {
         Surface {
-            FuelContent(previewCars, previewReceipts, previewCars[0], 2026, {}, ChartRange.M12, {}, PaddingValues(16.dp), {})
+            FuelContent(
+                previewCars, previewReceipts, previewMaintenance, previewCars[0], 2026, {}, ChartRange.M12, {},
+                PaddingValues(16.dp), {}, {}, {},
+            )
         }
     }
 }
@@ -366,25 +538,25 @@ private fun FuelPreview() {
 @Preview(
     name = "Tanken, alle Autos (dunkel)",
     showBackground = true,
-    heightDp = 1900,
+    heightDp = 2200,
     uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
 )
 @Composable
 private fun FuelAllPreview() {
     KilometerTheme {
         Surface {
-            FuelContent(previewCars, previewReceipts, null, 2026, {}, ChartRange.M12, {}, PaddingValues(16.dp), {})
+            FuelContent(
+                previewCars, previewReceipts, previewMaintenance, null, 2026, {}, ChartRange.M12, {},
+                PaddingValues(16.dp), {}, {}, {},
+            )
         }
     }
 }
 
-@Preview(name = "Tankbeleg eintragen")
+@Preview(name = "Wartungskosten eintragen")
 @Composable
-private fun ReceiptDialogPreview() {
+private fun MaintenanceDialogPreview() {
     KilometerTheme {
-        ReceiptDialog(
-            original = previewReceipts.last(), cars = previewCars, initialCarId = "golf",
-            onDismiss = {}, onSave = {}, onDelete = {},
-        )
+        MaintenanceDialog(original = null, cars = previewCars, initialCarId = "golf", onDismiss = {}, onSave = {}, onDelete = {})
     }
 }

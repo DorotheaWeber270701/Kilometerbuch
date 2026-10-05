@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="save">Kaydet</string>
+    <string name="cancel">İptal</string>
+    <string name="delete">Sil</string>
+    <string name="remove">Kaldır</string>
+    <string name="ok">Tamam</string>
+    <string name="done">Yapıldı</string>
+    <string name="next">İleri</string>
+    <string name="skip">Atla</string>
+    <string name="today">Bugün</string>
+    <string name="back">Geri</string>
+    <string name="selected">Seçili</string>
+    <string name="prev_year">Önceki yıl</string>
+    <string name="next_year">Sonraki yıl</string>
+    <string name="prev_month">Önceki ay</string>
+    <string name="next_month">Sonraki ay</string>
+    <string name="menu_open">Menüyü aç</string>
+    <string name="menu_close">Menüyü kapat</string>
+    <string name="unit_liters">litre</string>
+    <string name="unit_months">ay</string>
+    <string name="car_and_detail">%1$s · %2$s</string>
+
+    <string name="page_trips">Kilometre</string>
+    <string name="page_fuel">Yakıt</string>
+    <string name="page_reminders">Hatırlatmalar</string>
+    <string name="add_month">Ay ekle</string>
+    <string name="add_receipt">Yakıt fişi ekle</string>
+    <string name="range_12">12 ay</string>
+    <string name="range_24">24 ay</string>
+    <string name="range_all">Tümü</string>
+
+    <string name="appearance">Görünüm</string>
+    <string name="theme_system">Sistem</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="language">Dil</string>
+    <string name="language_system">Sistem dili</string>
+
+    <string name="all_cars">Tüm araçlar</string>
+    <string name="choose_car">Araç seç</string>
+    <string name="add_car">Araç ekle</string>
+    <string name="edit_car">Aracı düzenle</string>
+    <string name="edit_car_named">%1$s düzenle</string>
+    <string name="default_car_name">Aracım</string>
+    <string name="car_name">Ad</string>
+    <string name="car_name_placeholder">ör. Golf</string>
+    <string name="err_name_empty">Bir ad gir, ör. “Golf” veya “Şirket aracı”.</string>
+    <string name="err_name_long">En fazla 30 karakter kullan.</string>
+    <string name="err_name_taken">Bu adda bir araç zaten var.</string>
+    <string name="odometer_optional">Kilometre sayacı (isteğe bağlı)</string>
+    <string name="odometer_hint_new">Bakım hatırlatması için. Sonra uygulama kendisi saymaya devam eder.</string>
+    <string name="odometer_hint_existing">Aylık kilometrelerinle güncellenir.</string>
+    <string name="err_whole_number">Bir tam sayı gir, ör. 48.300.</string>
+    <string name="build_year_optional">Üretim yılı (isteğe bağlı)</string>
+    <string name="err_year_range">%1$d ile %2$d arasında bir yıl gir.</string>
+    <string name="car_color">Renk</string>
+    <string name="color_custom">Özel renk</string>
+    <string name="color_hue">Ton</string>
+    <string name="color_brightness">Parlaklık</string>
+
+    <string name="delete_entry_title">Kayıt silinsin mi?</string>
+    <string name="delete_entry_text">%1$s, %2$s km ile silinecek.</string>
+    <string name="delete_receipt_title">Yakıt fişi silinsin mi?</string>
+    <string name="delete_receipt_text">%1$s tarihli %2$s € tutarındaki fiş silinecek.</string>
+    <string name="delete_maintenance_title">Bakım gideri silinsin mi?</string>
+    <string name="delete_maintenance_text">%2$s tarihli %3$s € tutarındaki %1$s silinecek.</string>
+    <string name="delete_car_title">“%1$s” silinsin mi?</string>
+    <string name="delete_car_text">Bu araca ait tüm kayıtlar da silinecek (kilometre: %1$d, yakıt fişi: %2$d, bakım: %3$d). Verileri saklamak istiyorsan önce bir CSV dosyası indir.</string>
+
+    <string name="per_car_in_year">%1$d yılında araç başına</string>
+    <string name="stat_avg_month">Ø aylık</string>
+    <string name="stat_avg_consumption">Ø tüketim</string>
+    <string name="stat_fuel_approx">Yakıt yakl.</string>
+    <string name="stat_avg_price">Ø fiyat</string>
+    <string name="stat_refueled">Alınan yakıt</string>
+    <string name="driven_title">Gidilen yol</string>
+    <string name="driven_title_all">Gidilen yol, tüm araçlar</string>
+    <string name="months_none">%1$d yılında henüz ay girilmedi</string>
+    <plurals name="months_from">
+        <item quantity="one">%d aydan</item>
+        <item quantity="other">%d aydan</item>
+    </plurals>
+    <string name="spend_title">Harcamalar</string>
+    <string name="spend_title_all">Harcamalar, tüm araçlar</string>
+    <string name="receipts_none">%1$d yılında henüz yakıt alınmadı</string>
+    <plurals name="receipts_from">
+        <item quantity="one">%d fişten</item>
+        <item quantity="other">%d fişten</item>
+    </plurals>
+
+    <string name="trips_empty_title">Henüz kayıt yok</string>
+    <string name="trips_empty_title_car">“%1$s” için henüz kayıt yok</string>
+    <string name="trips_empty_text">Aşağıdaki “Ay ekle”ye dokun ve kaç kilometre yol yaptığını ve tüketimi gir. Ardından gelişimi bir grafikte görürsün.</string>
+    <string name="avg_consumption_value">Ø %1$s l/100 km</string>
+    <string name="consumption_value">%1$s l/100 km</string>
+    <string name="no_consumption">Tüketim girilmedi</string>
+    <string name="chart_km">Aylık kilometre</string>
+    <string name="stacked_by_car">Araca göre yığılmış</string>
+    <string name="chart_consumption">Tüketim</string>
+    <string name="one_line_per_car">Araç başına bir çizgi</string>
+    <string name="no_consumption_range">Bu dönemde tüketim girilmedi.</string>
+    <string name="entries_header">Kayıtlar</string>
+    <string name="entry_edit">Kaydı düzenle</string>
+    <string name="driven">Gidilen yol</string>
+    <string name="consumption_optional">Tüketim (isteğe bağlı)</string>
+    <string name="err_km_empty">Gidilen kilometreyi gir.</string>
+    <string name="err_km_range">0 ile 100.000 arasında bir tam sayı gir.</string>
+    <string name="err_l100_range">0,5 ile 50 arasında bir değer gir, ör. 6,4.</string>
+    <string name="entry_overwrites">%1$s için zaten bir kayıt var. Değiştirilecek.</string>
+
+    <string name="odometer_row">Sayaç yakl. %1$s km</string>
+    <string name="odometer_unknown">Kilometre sayacı henüz girilmedi</string>
+    <string name="odometer_adjust">Düzelt</string>
+    <string name="odometer_enter">Gir</string>
+    <string name="odo_title">Kilometreyi düzelt</string>
+    <string name="odo_current">Güncel sayaç değeri</string>
+    <string name="odo_month_label">Farkı şu aya ekle</string>
+    <string name="odo_estimate">Tahmini: yakl. %1$s km</string>
+    <string name="odo_plus">Tahminden %1$s km fazla. %2$s ayına eklenecek.</string>
+    <string name="odo_minus">Tahminden %1$s km az. %2$s ayından düşülecek.</string>
+    <string name="odo_equal">Tahminle aynı.</string>
+    <string name="odo_first">Bundan sonra uygulama sayacı aylık kilometrelerinle günceller.</string>
+
+    <string name="fuel_empty_title">Henüz yakıt fişi yok</string>
+    <string name="fuel_empty_title_car">“%1$s” için henüz yakıt fişi yok</string>
+    <string name="fuel_empty_text">Aşağıdaki “Yakıt fişi ekle”ye dokun ve litreyi ve toplam tutarı gir. Litre fiyatını uygulama hesaplar.</string>
+    <string name="no_receipt">Yakıt fişi yok</string>
+    <string name="liters_avg_price">%1$s l · Ø %2$s €/l</string>
+    <string name="chart_spend">Aylık harcamalar</string>
+    <string name="chart_spend_sub">Kesikli çizgi: aylık ortalama</string>
+    <string name="chart_spend_sub_stacked">Araca göre yığılmış · kesikli çizgi: aylık ortalama</string>
+    <string name="chart_price">Litre fiyatı</string>
+    <string name="chart_price_sub">Aydaki tüm fişlerin ortalaması</string>
+    <string name="chart_price_sub_all">Tüm araçlar birlikte, aydaki tüm fişlerin ortalaması</string>
+    <string name="receipts_header">Yakıt fişleri</string>
+    <string name="receipt_details">%1$s l · %2$s €/l</string>
+    <string name="receipt_edit">Yakıt fişini düzenle</string>
+    <string name="date">Tarih</string>
+    <string name="err_date_future">Tarih gelecekte.</string>
+    <string name="refueled_amount">Alınan yakıt</string>
+    <string name="total_cost">Toplam tutar</string>
+    <string name="err_liters_empty">Alınan litreyi gir.</string>
+    <string name="err_liters_range">0,5 ile 300 arasında bir değer gir, ör. 42,5.</string>
+    <string name="err_total_empty">Toplam tutarı gir.</string>
+    <string name="err_total_range">0,50 ile 2.000 € arasında bir tutar gir, ör. 76,03.</string>
+    <string name="price_per_liter">Litre fiyatı</string>
+    <string name="price_calculated">otomatik hesaplanır</string>
+
+    <string name="maint_header">Bakım ve onarım</string>
+    <string name="maint_sum">%2$d yılında %1$s €</string>
+    <string name="maint_add">Bakım gideri ekle</string>
+    <string name="maint_edit">Bakım giderini düzenle</string>
+    <string name="maint_empty">Henüz bakım gideri yok. Servis faturalarını buraya kaydet, ör. periyodik bakım veya onarımlar için.</string>
+    <string name="maint_cat_inspection">Periyodik bakım</string>
+    <string name="maint_cat_repair">Onarım</string>
+    <string name="maint_cat_tires">Lastik</string>
+    <string name="maint_cat_hu">Araç muayenesi</string>
+    <string name="maint_cat_other">Diğer</string>
+    <string name="maint_amount">Tutar</string>
+    <string name="maint_note">Not (isteğe bağlı)</string>
+    <string name="maint_note_placeholder">ör. ön fren balataları</string>
+    <string name="err_amount_empty">Tutarı gir.</string>
+    <string name="err_amount_range">0,01 ile 50.000 € arasında bir tutar gir.</string>
+
+    <string name="date_placeholder">GG.AA.YYYY</string>
+    <string name="date_invalid">Böyle bir tarih yok.</string>
+    <string name="date_format_error">Tarihi GG.AA.YYYY olarak gir, ör. 14102026.</string>
+    <string name="date_typing_hint">Sadece rakamları yaz, noktalar kendiliğinden eklenir.</string>
+
+    <string name="care_hu_title">Araç muayenesi</string>
+    <string name="care_hu_desc">Muayene ayından önce zamanında hatırlatır. Aldığın randevuyu girersen bir gün önce hatırlatma alırsın.</string>
+    <string name="care_hu_need">Sonraki muayene ayı</string>
+    <string name="care_service_title">Periyodik bakım</string>
+    <string name="care_service_desc">Süreye veya kilometreye göre, hangisi önce gelirse. Kilometreler aylık kayıtlarından alınır.</string>
+    <string name="care_service_need_month">Son bakımın ayı</string>
+    <string name="care_service_need_interval">Bakım kitapçığındaki aralık</string>
+    <string name="care_service_need_odo">İsteğe bağlı: son bakımdaki kilometre</string>
+    <string name="care_tires_title">Lastik değişimi</string>
+    <string name="care_tires_desc">Kış lastikleri ekimde, yaz lastikleri Paskalya’dan sonra. Dört mevsim lastik kullanıyorsan kapalı bırak.</string>
+    <string name="care_brake_title">Fren hidroliği</string>
+    <string name="care_brake_desc">Fren hidroliği nem çeker ve genellikle 2 yılda bir, çoğu zaman bakımla birlikte değiştirilmelidir.</string>
+    <string name="care_brake_need">Son değişimin ayı</string>
+    <string name="kind_winter_tires">Kış lastiklerini tak</string>
+    <string name="kind_summer_tires">Yaz lastiklerini tak</string>
+    <string name="kind_brake_fluid">Fren hidroliğini değiştir</string>
+    <string name="warn_2_weeks">2 hafta</string>
+    <string name="warn_1_month">1 ay</string>
+    <string name="warn_2_months">2 ay</string>
+
+    <string name="today_sentence">Bugün.</string>
+    <plurals name="days_left">
+        <item quantity="one">%d gün kaldı.</item>
+        <item quantity="other">%d gün kaldı.</item>
+    </plurals>
+    <plurals name="months_left">
+        <item quantity="one">%d ay sonra.</item>
+        <item quantity="other">%d ay sonra.</item>
+    </plurals>
+    <plurals name="hu_overdue_months">
+        <item quantity="one">%d aydır gecikmede.</item>
+        <item quantity="other">%d aydır gecikmede.</item>
+    </plurals>
+    <string name="hu_overdue_fine">Muayenesi geçmiş araçla trafiğe çıkmak para cezasına yol açabilir.</string>
+    <string name="hu_soon">Şimdi muayene randevusu al ve buraya gir.</string>
+    <string name="due_in">Muayene: %1$s</string>
+    <string name="hu_appt_headline">Randevu: %1$s</string>
+    <string name="hu_appt_past">Randevu %1$s tarihindeydi. Sonraki muayeneyi hesaplamak için “Yapıldı”ya dokun.</string>
+    <string name="hu_appt_today">Bugün. Ruhsatı unutma.</string>
+    <string name="hu_appt_tomorrow">Yarın. Ruhsatı unutma.</string>
+    <string name="hu_plakette">Muayene ayı: %1$s.</string>
+    <string name="km_limit_reached">Kilometre sınırına ulaşıldı</string>
+    <string name="due_since">Şu tarihten beri gecikmede: %1$s</string>
+    <string name="expected_in">Tahmini: %1$s</string>
+    <string name="latest_in">En geç: %1$s</string>
+    <string name="service_progress">%2$s km’nin %1$s km’si yapıldı.</string>
+    <string name="service_progress_left">%2$s km’nin %1$s km’si yapıldı, yakl. %3$s km kaldı.</string>
+    <string name="service_last">Son bakım: %1$s.</string>
+    <string name="service_last_at">Son bakım: %1$s, %2$s km’de.</string>
+    <string name="tires_winter_headline">Ekim %1$d</string>
+    <string name="tires_summer_headline">Paskalya’dan sonra, genelde Nisan %1$d</string>
+    <string name="tires_winter_detail">Genel kural: ekimden Paskalya’ya kadar kış lastiği. Buzlu ve karlı yollarda birçok ülkede zorunludur.</string>
+    <string name="tires_summer_detail">Genel kural: ekimden Paskalya’ya kadar kış lastiği, sonra yaz lastiği.</string>
+    <string name="brake_detail">Son değişim: %1$s. En kolayı bir sonraki bakımda yaptırmak.</string>
+
+    <string name="odo_fact">yakl. %1$s km</string>
+    <string name="build_year_fact">Model yılı %1$d</string>
+    <string name="intro_title">Uygulama sana neyi hatırlatsın?</string>
+    <string name="intro_text">Aşağıda ihtiyacın olanları aç. Uygulama yalnızca o hatırlatma için gereken bilgileri sorar ve gerisini, örneğin aylık kilometrelerinden, kendisi hesaplar. Bir şeyin zamanı yaklaştığında bildirim alırsın.</string>
+    <string name="notif_off_title">Bildirimler kapalı</string>
+    <string name="notif_off_text">Bildirimler olmadan yaklaşan tarihleri sadece burada, uygulamada görürsün.</string>
+    <string name="notif_allow">Bildirimlere izin ver</string>
+    <string name="urgency_overdue">Gecikmiş</string>
+    <string name="urgency_soon">Yakında</string>
+    <string name="urgency_later">Daha sonra</string>
+    <string name="more_reminders">Diğer hatırlatmalar</string>
+    <string name="appt_add">Randevu ekle</string>
+    <string name="appt_change">Randevuyu değiştir</string>
+    <string name="edit_details">Bilgileri düzenle</string>
+    <string name="missing_details">Tarihi hesaplamak için hâlâ bilgi eksik.</string>
+    <string name="complete_details">Bilgileri tamamla</string>
+    <string name="needs_label">Gerekenler</string>
+    <string name="needs_nothing">Hiçbir şey, kendiliğinden çalışır.</string>
+    <string name="done_title">%1$s yapıldı mı?</string>
+    <string name="done_hu">Sonraki muayene %1$s olarak ayarlanacak.</string>
+    <string name="done_service">Son bakım %1$s olarak, bugünkü kilometreyle ayarlanacak.</string>
+    <string name="done_tires">Bu sezonun hatırlatması gizlenecek. Gelecek sezon tekrar gelir.</string>
+    <string name="done_brake">Son değişim %1$s olarak ayarlanacak.</string>
+    <string name="appt_title">Muayene randevusu</string>
+    <string name="appt_date">Randevu tarihi</string>
+    <string name="hu_next_due">Sonraki muayene</string>
+    <string name="hu_plakette_hint">Ruhsatta veya son muayene raporunda yazar.</string>
+    <string name="hu_warn_label">Muayene ayından önce hatırlat</string>
+    <string name="hu_warn_reco">Önerilen: 1 ay, böylece zamanında randevu alırsın.</string>
+    <string name="service_last_label">Son bakım</string>
+    <string name="service_odo_label">O zamanki kilometre (isteğe bağlı)</string>
+    <string name="service_odo_hint">Bakım kitapçığında yazar. Hesaplama böylece daha kesin olur.</string>
+    <string name="current_odo_optional">Güncel kilometre (isteğe bağlı)</string>
+    <string name="current_odo_hint">Araçla birlikte kaydedilir ve aylık kilometrelerinle güncellenir.</string>
+    <string name="err_service_needs_odo">Bunun için güncel kilometreyi de gir.</string>
+    <string name="interval_label">Bakım kitapçığındaki aralık</string>
+    <string name="preset_1y">1 yıl · 15.000 km</string>
+    <string name="preset_2y">2 yıl · 30.000 km</string>
+    <string name="custom_interval">Özel aralık</string>
+    <string name="every">Her</string>
+    <string name="or_every">veya her</string>
+    <string name="err_months_range">1 ile 60 ay arası</string>
+    <string name="err_service_km_range">1.000 ile 100.000 km arası veya boş</string>
+    <string name="first_reached">Hangisine önce ulaşılırsa o geçerlidir.</string>
+    <string name="brake_last_label">Son değişim</string>
+    <string name="brake_hint">Bakım kitapçığında veya servis faturasında yazar.</string>
+    <string name="brake_every">Değişim aralığı</string>
+    <string name="brake_1y">1 yıl</string>
+    <string name="brake_2y">2 yıl</string>
+    <string name="brake_3y">3 yıl</string>
+
+    <string name="guide_welcome_title">Kilometerbuch’a hoş geldin</string>
+    <string name="guide_welcome_text">Ne kadar yol yaptığını, yakıtın sana neye mal olduğunu ve muayene ile bakımın ne zaman geldiğini takip et. Tüm veriler telefonunda kalır.</string>
+    <string name="guide_trips_title">Kilometre</string>
+    <string name="guide_trips_text">Ayda bir kaç kilometre yol yaptığını ve istersen tüketimi gir. Grafikler gelişimi gösterir.</string>
+    <string name="guide_fuel_title">Yakıt ve bakım</string>
+    <string name="guide_fuel_text">Fişteki litreyi ve tutarı gir. Litre fiyatını uygulama hesaplar. Servis faturalarını da kaydedebilirsin.</string>
+    <string name="guide_menu_title">Hatırlatmalar ve menü</string>
+    <string name="guide_menu_text">Sağ üstteki menüde muayene, bakım ve lastik hatırlatmalarını, diğer araçları, CSV yedeğini, koyu modu ve dil seçimini bulursun.</string>
+    <string name="first_car_title">İlk aracın</string>
+    <string name="first_car_text">Ona bir ad ver. Kilometre ve yılı daha sonra da girebilirsin; kilometre bakım hatırlatmasına yardımcı olur.</string>
+    <string name="lets_go">Başlayalım</string>
+    <string name="load_csv">Verileri CSV dosyasından yükle</string>
+    <string name="load_csv_hint">Örneğin daha önce menüden indirdiğin bir yedek.</string>
+    <string name="step_of">Adım %1$d / %2$d</string>
+
+    <string name="menu">Menü</string>
+    <string name="due_count">%1$d yaklaşan</string>
+    <string name="cars_section">Araçlar</string>
+    <string name="data_section">Veriler</string>
+    <string name="csv_download">CSV olarak indir</string>
+    <string name="csv_upload">CSV yükle</string>
+    <string name="csv_info">Dosya tüm araçları, kilometreleri, yakıt fişlerini ve bakım giderlerini içerir ve Excel ile açılır. Yüklerken kayıtlar eklenir: var olan bir ay değiştirilir, aynı fişler atlanır. Araçlar adlarına göre eşleştirilir.</string>
+    <string name="privacy_policy">Gizlilik politikası</string>
+
+    <string name="csv_saved">CSV dosyası kaydedildi (kilometre: %1$d, yakıt fişi: %2$d, bakım: %3$d).</string>
+    <string name="csv_save_failed">Dosya kaydedilemedi. Lütfen başka bir konum seç.</string>
+    <string name="import_title">CSV yükle</string>
+    <string name="import_unreadable">Dosya okunamadı.</string>
+    <string name="import_empty">Dosya boş.</string>
+    <string name="import_missing_columns">Dosya beklenen biçimde değil: “Typ” ve “Auto” sütunları eksik. Nasıl olması gerektiğini görmek için önce bir dosya indir.</string>
+    <string name="import_trips">Kilometre: %1$d yeni</string>
+    <string name="import_fuel">Yakıt fişi: %1$d yeni</string>
+    <string name="import_maint">Bakım: %1$d yeni</string>
+    <string name="import_replaced">, %1$d değiştirildi</string>
+    <string name="import_skipped">, %1$d zaten vardı ve atlandı</string>
+    <string name="import_new_cars">Yeni oluşturulan araçlar: %1$s.</string>
+    <string name="import_bad_lines">%1$d satır okunamadı (satır %2$s). Oradaki türü, tarihi veya ayı ve sayıları kontrol et.</string>
+    <string name="save_failed">Kaydedilemedi. Lütfen tekrar dene.</string>
+
+    <string name="notif_channel">Hatırlatmalar</string>
+    <string name="notif_channel_desc">Muayene, bakım ve lastik değişimi hatırlatmaları</string>
+    <string name="notif_title">%1$s: %2$s</string>
+    <string name="notif_title_overdue">%1$s: %2$s gecikmede</string>
+    <string name="notif_appt_today">%1$s: muayene bugün</string>
+    <string name="notif_appt_tomorrow">%1$s: muayene yarın</string>
+
+    <string-array name="months_long">
+        <item>Ocak</item><item>Şubat</item><item>Mart</item><item>Nisan</item><item>Mayıs</item><item>Haziran</item>
+        <item>Temmuz</item><item>Ağustos</item><item>Eylül</item><item>Ekim</item><item>Kasım</item><item>Aralık</item>
+    </string-array>
+    <string-array name="months_short">
+        <item>Oca</item><item>Şub</item><item>Mar</item><item>Nis</item><item>May</item><item>Haz</item>
+        <item>Tem</item><item>Ağu</item><item>Eyl</item><item>Eki</item><item>Kas</item><item>Ara</item>
+    </string-array>
+</resources>

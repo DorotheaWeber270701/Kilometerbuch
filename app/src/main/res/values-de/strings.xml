@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Allgemein -->
+    <string name="save">Speichern</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="delete">Löschen</string>
+    <string name="remove">Entfernen</string>
+    <string name="ok">OK</string>
+    <string name="done">Erledigt</string>
+    <string name="next">Weiter</string>
+    <string name="skip">Überspringen</string>
+    <string name="today">Heute</string>
+    <string name="back">Zurück</string>
+    <string name="selected">Ausgewählt</string>
+    <string name="prev_year">Vorheriges Jahr</string>
+    <string name="next_year">Nächstes Jahr</string>
+    <string name="prev_month">Vorheriger Monat</string>
+    <string name="next_month">Nächster Monat</string>
+    <string name="menu_open">Menü öffnen</string>
+    <string name="menu_close">Menü schließen</string>
+    <string name="unit_liters">Liter</string>
+    <string name="unit_months">Monate</string>
+    <string name="car_and_detail">%1$s · %2$s</string>
+
+    <!-- Seiten -->
+    <string name="page_trips">Fahrten</string>
+    <string name="page_fuel">Tanken</string>
+    <string name="page_reminders">Termine</string>
+    <string name="add_month">Monat eintragen</string>
+    <string name="add_receipt">Tankbeleg eintragen</string>
+    <string name="range_12">12 Monate</string>
+    <string name="range_24">24 Monate</string>
+    <string name="range_all">Alles</string>
+
+    <!-- Darstellung und Sprache -->
+    <string name="appearance">Darstellung</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="language">Sprache</string>
+    <string name="language_system">Wie System</string>
+
+    <!-- Autos -->
+    <string name="all_cars">Alle Autos</string>
+    <string name="choose_car">Auto wählen</string>
+    <string name="add_car">Auto hinzufügen</string>
+    <string name="edit_car">Auto bearbeiten</string>
+    <string name="edit_car_named">%1$s bearbeiten</string>
+    <string name="default_car_name">Mein Auto</string>
+    <string name="car_name">Name</string>
+    <string name="car_name_placeholder">z. B. Golf</string>
+    <string name="err_name_empty">Bitte einen Namen eingeben, z. B. „Golf“ oder „Firmenwagen“.</string>
+    <string name="err_name_long">Bitte höchstens 30 Zeichen verwenden.</string>
+    <string name="err_name_taken">Es gibt schon ein Auto mit diesem Namen.</string>
+    <string name="odometer_optional">Kilometerstand (optional)</string>
+    <string name="odometer_hint_new">Für die Inspektions-Erinnerung. Danach zählt die App selbst weiter.</string>
+    <string name="odometer_hint_existing">Wird mit deinen Monatskilometern fortgeschrieben.</string>
+    <string name="err_whole_number">Bitte eine ganze Zahl eingeben, z. B. 48.300.</string>
+    <string name="build_year_optional">Baujahr (optional)</string>
+    <string name="err_year_range">Bitte ein Jahr zwischen %1$d und %2$d eingeben.</string>
+    <string name="car_color">Farbe</string>
+    <string name="color_custom">Eigene Farbe</string>
+    <string name="color_hue">Farbton</string>
+    <string name="color_brightness">Helligkeit</string>
+
+    <!-- Löschen -->
+    <string name="delete_entry_title">Eintrag löschen?</string>
+    <string name="delete_entry_text">%1$s mit %2$s km wird gelöscht.</string>
+    <string name="delete_receipt_title">Tankbeleg löschen?</string>
+    <string name="delete_receipt_text">Beleg vom %1$s über %2$s € wird gelöscht.</string>
+    <string name="delete_maintenance_title">Wartungseintrag löschen?</string>
+    <string name="delete_maintenance_text">%1$s vom %2$s über %3$s € wird gelöscht.</string>
+    <string name="delete_car_title">„%1$s“ löschen?</string>
+    <string name="delete_car_text">Gelöscht werden auch alle Einträge dieses Autos (Fahrten: %1$d, Tankbelege: %2$d, Wartung: %3$d). Lade vorher eine CSV-Datei herunter, wenn du die Daten behalten willst.</string>
+
+    <!-- Jahresübersicht -->
+    <string name="per_car_in_year">Pro Auto in %1$d</string>
+    <string name="stat_avg_month">Ø pro Monat</string>
+    <string name="stat_avg_consumption">Ø Verbrauch</string>
+    <string name="stat_fuel_approx">Sprit ca.</string>
+    <string name="stat_avg_price">Ø Preis</string>
+    <string name="stat_refueled">Getankt</string>
+    <string name="driven_title">Gefahren</string>
+    <string name="driven_title_all">Gefahren, alle Autos</string>
+    <string name="months_none">In %1$d noch kein Monat eingetragen</string>
+    <plurals name="months_from">
+        <item quantity="one">aus %d Monat</item>
+        <item quantity="other">aus %d Monaten</item>
+    </plurals>
+    <string name="spend_title">Ausgaben</string>
+    <string name="spend_title_all">Ausgaben, alle Autos</string>
+    <string name="receipts_none">In %1$d noch nicht getankt</string>
+    <plurals name="receipts_from">
+        <item quantity="one">aus %d Tankbeleg</item>
+        <item quantity="other">aus %d Tankbelegen</item>
+    </plurals>
+
+    <!-- Fahrten -->
+    <string name="trips_empty_title">Noch keine Einträge</string>
+    <string name="trips_empty_title_car">Für „%1$s“ ist noch nichts eingetragen</string>
+    <string name="trips_empty_text">Tippe unten auf „Monat eintragen“ und gib ein, wie viele Kilometer du gefahren bist und wie hoch der Verbrauch war. Danach siehst du hier den Verlauf als Diagramm.</string>
+    <string name="avg_consumption_value">Ø %1$s l/100 km</string>
+    <string name="consumption_value">%1$s l/100 km</string>
+    <string name="no_consumption">Kein Verbrauch eingetragen</string>
+    <string name="chart_km">Kilometer pro Monat</string>
+    <string name="stacked_by_car">Gestapelt nach Auto</string>
+    <string name="chart_consumption">Verbrauch</string>
+    <string name="one_line_per_car">Eine Linie pro Auto</string>
+    <string name="no_consumption_range">In diesem Zeitraum ist kein Verbrauch eingetragen.</string>
+    <string name="entries_header">Einträge</string>
+    <string name="entry_edit">Eintrag bearbeiten</string>
+    <string name="driven">Gefahren</string>
+    <string name="consumption_optional">Verbrauch (optional)</string>
+    <string name="err_km_empty">Bitte die gefahrenen Kilometer eintragen.</string>
+    <string name="err_km_range">Bitte eine ganze Zahl zwischen 0 und 100.000 eingeben.</string>
+    <string name="err_l100_range">Bitte einen Wert zwischen 0,5 und 50 eingeben, z. B. 6,4.</string>
+    <string name="entry_overwrites">Für %1$s gibt es schon einen Eintrag. Er wird ersetzt.</string>
+
+    <!-- Kilometerstand abgleichen -->
+    <string name="odometer_row">Tacho ca. %1$s km</string>
+    <string name="odometer_unknown">Kilometerstand noch nicht erfasst</string>
+    <string name="odometer_adjust">Abgleichen</string>
+    <string name="odometer_enter">Eintragen</string>
+    <string name="odo_title">Kilometerstand abgleichen</string>
+    <string name="odo_current">Aktueller Tachostand</string>
+    <string name="odo_month_label">Differenz anrechnen im Monat</string>
+    <string name="odo_estimate">Geschätzt: ca. %1$s km</string>
+    <string name="odo_plus">%1$s km mehr als geschätzt. Sie werden %2$s zugerechnet.</string>
+    <string name="odo_minus">%1$s km weniger als geschätzt. Sie werden bei %2$s abgezogen.</string>
+    <string name="odo_equal">Stimmt mit der Schätzung überein.</string>
+    <string name="odo_first">Ab jetzt schreibt die App den Stand mit deinen Monatskilometern fort.</string>
+
+    <!-- Tanken -->
+    <string name="fuel_empty_title">Noch keine Tankbelege</string>
+    <string name="fuel_empty_title_car">Für „%1$s“ gibt es noch keine Tankbelege</string>
+    <string name="fuel_empty_text">Tippe unten auf „Tankbeleg eintragen“ und gib die getankten Liter und den Gesamtbetrag ein. Den Preis pro Liter rechnet die App selbst aus.</string>
+    <string name="no_receipt">Kein Tankbeleg</string>
+    <string name="liters_avg_price">%1$s l · Ø %2$s €/l</string>
+    <string name="chart_spend">Ausgaben pro Monat</string>
+    <string name="chart_spend_sub">Gestrichelt: Durchschnitt pro Monat</string>
+    <string name="chart_spend_sub_stacked">Gestapelt nach Auto · gestrichelt: Durchschnitt pro Monat</string>
+    <string name="chart_price">Preis pro Liter</string>
+    <string name="chart_price_sub">Durchschnitt aller Belege im Monat</string>
+    <string name="chart_price_sub_all">Alle Autos zusammen, Durchschnitt aller Belege im Monat</string>
+    <string name="receipts_header">Tankbelege</string>
+    <string name="receipt_details">%1$s l · %2$s €/l</string>
+    <string name="receipt_edit">Tankbeleg bearbeiten</string>
+    <string name="date">Datum</string>
+    <string name="err_date_future">Das Datum liegt in der Zukunft.</string>
+    <string name="refueled_amount">Getankt</string>
+    <string name="total_cost">Gesamtkosten</string>
+    <string name="err_liters_empty">Bitte die getankten Liter eintragen.</string>
+    <string name="err_liters_range">Bitte einen Wert zwischen 0,5 und 300 eingeben, z. B. 42,5.</string>
+    <string name="err_total_empty">Bitte den Gesamtbetrag eintragen.</string>
+    <string name="err_total_range">Bitte einen Betrag zwischen 0,50 und 2.000 € eingeben, z. B. 76,03.</string>
+    <string name="price_per_liter">Preis pro Liter</string>
+    <string name="price_calculated">wird berechnet</string>
+
+    <!-- Wartung -->
+    <string name="maint_header">Wartung &amp; Reparaturen</string>
+    <string name="maint_sum">%1$s € in %2$d</string>
+    <string name="maint_add">Wartungskosten eintragen</string>
+    <string name="maint_edit">Wartungskosten bearbeiten</string>
+    <string name="maint_empty">Noch keine Wartungskosten. Trag hier Werkstattrechnungen ein, etwa für Inspektion oder Reparaturen.</string>
+    <string name="maint_cat_inspection">Inspektion</string>
+    <string name="maint_cat_repair">Reparatur</string>
+    <string name="maint_cat_tires">Reifen</string>
+    <string name="maint_cat_hu">HU / TÜV</string>
+    <string name="maint_cat_other">Sonstiges</string>
+    <string name="maint_amount">Betrag</string>
+    <string name="maint_note">Notiz (optional)</string>
+    <string name="maint_note_placeholder">z. B. Bremsbeläge vorne</string>
+    <string name="err_amount_empty">Bitte den Betrag eintragen.</string>
+    <string name="err_amount_range">Bitte einen Betrag zwischen 0,01 und 50.000 € eingeben.</string>
+
+    <!-- Datumsfeld -->
+    <string name="date_placeholder">TT.MM.JJJJ</string>
+    <string name="date_invalid">Dieses Datum gibt es nicht.</string>
+    <string name="date_format_error">Bitte das Datum als TT.MM.JJJJ eingeben, z. B. 14102026.</string>
+    <string name="date_typing_hint">Nur Ziffern tippen, die Punkte kommen von selbst.</string>
+
+    <!-- Erinnerungen: Arten -->
+    <string name="care_hu_title">Hauptuntersuchung (TÜV)</string>
+    <string name="care_hu_desc">Erinnert rechtzeitig vor dem Monat auf der Plakette. Einen gebuchten Termin kannst du eintragen, dann kommt die Erinnerung am Tag vorher.</string>
+    <string name="care_hu_need">Monat auf der HU-Plakette</string>
+    <string name="care_service_title">Inspektion</string>
+    <string name="care_service_desc">Nach Zeit oder Kilometern, je nachdem, was zuerst kommt. Die Kilometer kommen aus deinen Monatseinträgen.</string>
+    <string name="care_service_need_month">Monat der letzten Inspektion</string>
+    <string name="care_service_need_interval">Intervall laut Serviceheft</string>
+    <string name="care_service_need_odo">Optional: km-Stand bei der letzten Inspektion</string>
+    <string name="care_tires_title">Reifenwechsel</string>
+    <string name="care_tires_desc">Im Oktober Winterreifen, nach Ostern Sommerreifen (Faustregel „von O bis O“). Aus bei Ganzjahresreifen.</string>
+    <string name="care_brake_title">Bremsflüssigkeit</string>
+    <string name="care_brake_desc">Bremsflüssigkeit zieht Wasser und muss meist alle 2 Jahre gewechselt werden, oft zusammen mit der Inspektion.</string>
+    <string name="care_brake_need">Monat des letzten Wechsels</string>
+    <string name="kind_winter_tires">Winterreifen aufziehen</string>
+    <string name="kind_summer_tires">Sommerreifen aufziehen</string>
+    <string name="kind_brake_fluid">Bremsflüssigkeit wechseln</string>
+    <string name="warn_2_weeks">2 Wochen</string>
+    <string name="warn_1_month">1 Monat</string>
+    <string name="warn_2_months">2 Monate</string>
+
+    <!-- Erinnerungen: berechnete Texte -->
+    <string name="today_sentence">Heute.</string>
+    <plurals name="days_left">
+        <item quantity="one">Noch %d Tag.</item>
+        <item quantity="other">Noch %d Tage.</item>
+    </plurals>
+    <plurals name="months_left">
+        <item quantity="one">In %d Monat.</item>
+        <item quantity="other">In %d Monaten.</item>
+    </plurals>
+    <plurals name="hu_overdue_months">
+        <item quantity="one">Seit %d Monat überfällig.</item>
+        <item quantity="other">Seit %d Monaten überfällig.</item>
+    </plurals>
+    <string name="hu_overdue_fine">Wer mehr als 2 Monate drüber ist, zahlt ein Bußgeld und eine teurere Prüfung.</string>
+    <string name="hu_soon">Jetzt einen Termin bei TÜV, DEKRA oder GTÜ ausmachen und hier eintragen. Die Abgasuntersuchung (AU) ist Teil der HU.</string>
+    <string name="due_in">Fällig im %1$s</string>
+    <string name="hu_appt_headline">Termin am %1$s</string>
+    <string name="hu_appt_past">Der Termin war am %1$s. Tippe auf „Erledigt“, dann wird die nächste HU berechnet.</string>
+    <string name="hu_appt_today">Heute. Fahrzeugschein (Zulassungsbescheinigung Teil I) nicht vergessen.</string>
+    <string name="hu_appt_tomorrow">Morgen. Fahrzeugschein (Zulassungsbescheinigung Teil I) nicht vergessen.</string>
+    <string name="hu_plakette">Plakette: %1$s.</string>
+    <string name="km_limit_reached">Kilometergrenze erreicht</string>
+    <string name="due_since">Seit %1$s fällig</string>
+    <string name="expected_in">Voraussichtlich im %1$s</string>
+    <string name="latest_in">Spätestens im %1$s</string>
+    <string name="service_progress">%1$s von %2$s km gefahren.</string>
+    <string name="service_progress_left">%1$s von %2$s km gefahren, noch ca. %3$s km.</string>
+    <string name="service_last">Letzte Inspektion: %1$s.</string>
+    <string name="service_last_at">Letzte Inspektion: %1$s bei %2$s km.</string>
+    <string name="tires_winter_headline">Im Oktober %1$d</string>
+    <string name="tires_summer_headline">Nach Ostern, meist im April %1$d</string>
+    <string name="tires_winter_detail">Faustregel: Winterreifen von Oktober bis Ostern. Bei Glätte, Schnee und Eis sind sie Pflicht.</string>
+    <string name="tires_summer_detail">Faustregel: Winterreifen von Oktober bis Ostern, danach Sommerreifen.</string>
+    <string name="brake_detail">Letzter Wechsel: %1$s. Am einfachsten bei der nächsten Inspektion mitmachen lassen.</string>
+
+    <!-- Termine-Seite -->
+    <string name="odo_fact">ca. %1$s km</string>
+    <string name="build_year_fact">Baujahr %1$d</string>
+    <string name="intro_title">Woran soll die App dich erinnern?</string>
+    <string name="intro_text">Schalte unten ein, was du brauchst. Die App fragt dann nur nach den Angaben für diese Erinnerung und rechnet den Rest selbst aus, zum Beispiel aus deinen Monatskilometern. Ist ein Termin bald fällig, bekommst du eine Benachrichtigung.</string>
+    <string name="notif_off_title">Benachrichtigungen sind aus</string>
+    <string name="notif_off_text">Ohne Benachrichtigungen siehst du fällige Termine nur hier in der App.</string>
+    <string name="notif_allow">Benachrichtigungen erlauben</string>
+    <string name="urgency_overdue">Überfällig</string>
+    <string name="urgency_soon">Bald fällig</string>
+    <string name="urgency_later">Später</string>
+    <string name="more_reminders">Weitere Erinnerungen</string>
+    <string name="appt_add">Termin eintragen</string>
+    <string name="appt_change">Termin ändern</string>
+    <string name="edit_details">Angaben ändern</string>
+    <string name="missing_details">Es fehlen noch Angaben, damit die App den Termin berechnen kann.</string>
+    <string name="complete_details">Angaben ergänzen</string>
+    <string name="needs_label">Benötigt</string>
+    <string name="needs_nothing">Nichts, läuft von selbst.</string>
+    <string name="done_title">%1$s erledigt?</string>
+    <string name="done_hu">Die nächste HU wird auf %1$s gesetzt.</string>
+    <string name="done_service">Die letzte Inspektion wird auf %1$s gesetzt, beim heutigen Kilometerstand.</string>
+    <string name="done_tires">Die Erinnerung für diese Saison wird ausgeblendet. Zur nächsten Saison kommt sie wieder.</string>
+    <string name="done_brake">Der letzte Wechsel wird auf %1$s gesetzt.</string>
+    <string name="appt_title">TÜV-Termin</string>
+    <string name="appt_date">Datum des Termins</string>
+    <string name="hu_next_due">Nächste HU fällig im</string>
+    <string name="hu_plakette_hint">Steht auf der Plakette am hinteren Kennzeichen und im Fahrzeugschein.</string>
+    <string name="hu_warn_label">Erinnern vor dem Plaketten-Monat</string>
+    <string name="hu_warn_reco">Empfehlung: 1 Monat. Früher zur HU zu gehen verschenkt Zeit, denn die nächsten 2 Jahre zählen ab dem Prüfmonat.</string>
+    <string name="service_last_label">Letzte Inspektion</string>
+    <string name="service_odo_label">km-Stand dabei (optional)</string>
+    <string name="service_odo_hint">Steht im Serviceheft. Damit wird genauer gerechnet.</string>
+    <string name="current_odo_optional">Heutiger Kilometerstand (optional)</string>
+    <string name="current_odo_hint">Wird beim Auto gespeichert und mit deinen Monatskilometern fortgeschrieben.</string>
+    <string name="err_service_needs_odo">Dafür bitte auch den heutigen Kilometerstand eintragen.</string>
+    <string name="interval_label">Intervall laut Serviceheft</string>
+    <string name="preset_1y">1 Jahr · 15.000 km</string>
+    <string name="preset_2y">2 Jahre · 30.000 km</string>
+    <string name="custom_interval">Eigenes Intervall</string>
+    <string name="every">Alle</string>
+    <string name="or_every">oder alle</string>
+    <string name="err_months_range">1 bis 60 Monate</string>
+    <string name="err_service_km_range">1.000 bis 100.000 km oder leer</string>
+    <string name="first_reached">Es zählt, was zuerst erreicht ist.</string>
+    <string name="brake_last_label">Letzter Wechsel</string>
+    <string name="brake_hint">Steht im Serviceheft oder auf der Rechnung der Werkstatt.</string>
+    <string name="brake_every">Wechseln alle</string>
+    <string name="brake_1y">1 Jahr</string>
+    <string name="brake_2y">2 Jahre</string>
+    <string name="brake_3y">3 Jahre</string>
+
+    <!-- Schnellstart -->
+    <string name="guide_welcome_title">Willkommen beim Kilometerbuch</string>
+    <string name="guide_welcome_text">Behalte im Blick, wie viel du fährst, was das Tanken kostet und wann TÜV und Inspektion fällig sind. Alle Daten bleiben auf deinem Handy.</string>
+    <string name="guide_trips_title">Fahrten</string>
+    <string name="guide_trips_text">Trag einmal im Monat ein, wie viele Kilometer du gefahren bist, und auf Wunsch den Verbrauch. Die Diagramme zeigen dir den Verlauf.</string>
+    <string name="guide_fuel_title">Tanken und Wartung</string>
+    <string name="guide_fuel_text">Gib vom Tankbeleg die Liter und den Betrag ein. Den Preis pro Liter rechnet die App selbst aus. Werkstattrechnungen kannst du ebenfalls festhalten.</string>
+    <string name="guide_menu_title">Termine und Menü</string>
+    <string name="guide_menu_text">Im Menü oben rechts findest du die Termine für HU, Inspektion und Reifenwechsel, weitere Autos, die Datensicherung als CSV-Datei, den Dunkelmodus und die Sprache.</string>
+    <string name="first_car_title">Dein erstes Auto</string>
+    <string name="first_car_text">Gib ihm einen Namen. Kilometerstand und Baujahr kannst du auch später eintragen; der Kilometerstand hilft bei der Erinnerung an die Inspektion.</string>
+    <string name="lets_go">Los geht’s</string>
+    <string name="load_csv">Daten aus CSV-Datei laden</string>
+    <string name="load_csv_hint">Zum Beispiel eine Sicherung, die du vorher im Menü heruntergeladen hast.</string>
+    <string name="step_of">Schritt %1$d von %2$d</string>
+
+    <!-- Menü -->
+    <string name="menu">Menü</string>
+    <string name="due_count">%1$d fällig</string>
+    <string name="cars_section">Autos</string>
+    <string name="data_section">Daten</string>
+    <string name="csv_download">Als CSV herunterladen</string>
+    <string name="csv_upload">CSV hochladen</string>
+    <string name="csv_info">Die Datei enthält alle Autos, Fahrten, Tankbelege und Wartungskosten und lässt sich mit Excel öffnen. Beim Hochladen werden die Einträge ergänzt: Ein schon vorhandener Monat wird ersetzt, doppelte Belege werden übersprungen. Autos werden über ihren Namen zugeordnet.</string>
+    <string name="privacy_policy">Datenschutzerklärung</string>
+
+    <!-- Meldungen -->
+    <string name="csv_saved">CSV-Datei gespeichert (Fahrten: %1$d, Tankbelege: %2$d, Wartung: %3$d).</string>
+    <string name="csv_save_failed">Die Datei konnte nicht gespeichert werden. Bitte einen anderen Speicherort wählen.</string>
+    <string name="import_title">CSV hochladen</string>
+    <string name="import_unreadable">Die Datei konnte nicht gelesen werden.</string>
+    <string name="import_empty">Die Datei ist leer.</string>
+    <string name="import_missing_columns">Die Datei hat nicht das erwartete Format: Es fehlen die Spalten „Typ“ und „Auto“. Lade zuerst eine Datei herunter, um zu sehen, wie sie aufgebaut sein muss.</string>
+    <string name="import_trips">Fahrten: %1$d neu</string>
+    <string name="import_fuel">Tankbelege: %1$d neu</string>
+    <string name="import_maint">Wartung: %1$d neu</string>
+    <string name="import_replaced">, %1$d ersetzt</string>
+    <string name="import_skipped">, %1$d schon vorhanden und übersprungen</string>
+    <string name="import_new_cars">Neu angelegte Autos: %1$s.</string>
+    <string name="import_bad_lines">%1$d Zeilen konnten nicht gelesen werden (Zeile %2$s). Prüfe dort Typ, Datum bzw. Monat und die Zahlen.</string>
+    <string name="save_failed">Speichern fehlgeschlagen. Bitte noch einmal versuchen.</string>
+
+    <!-- Benachrichtigungen -->
+    <string name="notif_channel">Termine</string>
+    <string name="notif_channel_desc">Erinnerungen an HU, Inspektion und Reifenwechsel</string>
+    <string name="notif_title">%1$s: %2$s</string>
+    <string name="notif_title_overdue">%1$s: %2$s überfällig</string>
+    <string name="notif_appt_today">%1$s: TÜV-Termin heute</string>
+    <string name="notif_appt_tomorrow">%1$s: TÜV-Termin morgen</string>
+
+    <string-array name="months_long">
+        <item>Januar</item><item>Februar</item><item>März</item><item>April</item><item>Mai</item><item>Juni</item>
+        <item>Juli</item><item>August</item><item>September</item><item>Oktober</item><item>November</item><item>Dezember</item>
+    </string-array>
+    <string-array name="months_short">
+        <item>Jan</item><item>Feb</item><item>Mär</item><item>Apr</item><item>Mai</item><item>Jun</item>
+        <item>Jul</item><item>Aug</item><item>Sep</item><item>Okt</item><item>Nov</item><item>Dez</item>
+    </string-array>
+</resources>

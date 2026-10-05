@@ -1,12 +1,17 @@
 package de.kilometerbuch.ui
 
+import androidx.annotation.StringRes
+import de.kilometerbuch.R
 import de.kilometerbuch.data.Entry
 import de.kilometerbuch.data.FuelReceipt
+import de.kilometerbuch.data.MaintenanceCost
+import de.kilometerbuch.i18n.L10n
+import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.time.format.FormatStyle
 import kotlin.math.roundToLong
 
 // --- Fahrten ---
@@ -78,10 +83,10 @@ fun fuelYearStats(receipts: List<FuelReceipt>, year: Int): FuelYearStats {
 
 // --- Zeitraum für Diagramme ---
 
-enum class ChartRange(val label: String, val months: Int?) {
-    M12("12 Monate", 12),
-    M24("24 Monate", 24),
-    ALL("Alles", null),
+enum class ChartRange(@StringRes val label: Int, val months: Int?) {
+    M12(R.string.range_12, 12),
+    M24(R.string.range_24, 24),
+    ALL(R.string.range_all, null),
 }
 
 /** Lückenlose Monatsfolge bis zum letzten Monat mit Daten. */
@@ -93,23 +98,29 @@ fun monthRange(months: Collection<YearMonth>, range: ChartRange): List<YearMonth
     return generateSequence(start) { it.plusMonths(1) }.takeWhile { !it.isAfter(end) }.toList()
 }
 
-// --- Formatierung und Eingabe ---
+// --- Wartung ---
 
-private val GERMAN = Locale.GERMANY
-private val MONTHS_SHORT = listOf("Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez")
-private val MONTHS_LONG = listOf(
-    "Januar", "Februar", "März", "April", "Mai", "Juni",
-    "Juli", "August", "September", "Oktober", "November", "Dezember",
-)
-private val DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+/** Summe der Wartungskosten in [year]. */
+fun maintenanceSum(costs: List<MaintenanceCost>, year: Int): Double =
+    costs.filter { it.date.year == year }.sumOf { it.amount }
 
-fun fmtInt(v: Double): String = NumberFormat.getIntegerInstance(GERMAN).format(v.roundToLong())
-fun fmt1(v: Double): String = String.format(GERMAN, "%.1f", v)
-fun fmt2(v: Double): String = String.format(GERMAN, "%,.2f", v)
-fun fmt3(v: Double): String = String.format(GERMAN, "%.3f", v)
-fun fmtDate(d: LocalDate): String = d.format(DATE_FORMAT)
-fun monthLong(m: YearMonth) = "${MONTHS_LONG[m.monthValue - 1]} ${m.year}"
-fun monthShort(m: YearMonth) = MONTHS_SHORT[m.monthValue - 1]
+// --- Formatierung in der App-Sprache ---
 
-/** Text für ein Eingabefeld, z. B. 6.4 → „6,4“. */
-fun decimalInput(v: Double): String = v.toBigDecimal().stripTrailingZeros().toPlainString().replace('.', ',')
+fun fmtInt(v: Double): String = NumberFormat.getIntegerInstance(L10n.locale).format(v.roundToLong())
+fun fmt1(v: Double): String = String.format(L10n.locale, "%.1f", v)
+fun fmt2(v: Double): String = String.format(L10n.locale, "%,.2f", v)
+fun fmt3(v: Double): String = String.format(L10n.locale, "%.3f", v)
+fun fmtDate(d: LocalDate): String = d.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(L10n.locale))
+
+/** Datum mit Wochentag, z. B. „Mi., 14.10.2026“. */
+fun fmtWeekdayDate(d: LocalDate): String = "${d.format(DateTimeFormatter.ofPattern("EEE", L10n.locale))}, ${fmtDate(d)}"
+
+/** Ausgeschriebenes Datum für Hinweise, z. B. „Mittwoch, 14. Oktober 2026“. */
+fun fmtLongDate(d: LocalDate): String = d.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(L10n.locale))
+
+fun monthLong(m: YearMonth) = "${L10n.monthName(m.monthValue)} ${m.year}"
+fun monthShort(m: YearMonth) = L10n.monthShortName(m.monthValue)
+
+/** Text für ein Eingabefeld, z. B. 6.4 → „6,4“ (mit dem Dezimalzeichen der Sprache). */
+fun decimalInput(v: Double): String =
+    v.toBigDecimal().stripTrailingZeros().toPlainString().replace('.', DecimalFormatSymbols.getInstance(L10n.locale).decimalSeparator)

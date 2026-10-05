@@ -25,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import de.kilometerbuch.R
 
 /** Kopfzeile der Jahreskarte mit Pfeilen zum Blättern. */
 @Composable
@@ -33,11 +35,11 @@ fun YearHeader(title: String, year: Int, years: List<Int>, onYearChange: (Int) -
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
         IconButton(onClick = { onYearChange(year - 1) }, enabled = year > years.min()) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Vorheriges Jahr")
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(R.string.prev_year))
         }
         Text("$year", style = MaterialTheme.typography.titleMedium)
         IconButton(onClick = { onYearChange(year + 1) }, enabled = year < years.max()) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Nächstes Jahr")
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = stringResource(R.string.next_year))
         }
     }
 }
@@ -86,7 +88,7 @@ fun RangeSelector(range: ChartRange, onChange: (ChartRange) -> Unit) {
                 selected = option == range,
                 onClick = { onChange(option) },
                 shape = SegmentedButtonDefaults.itemShape(index = i, count = options.size),
-            ) { Text(option.label) }
+            ) { Text(stringResource(option.label)) }
         }
     }
 }
@@ -120,7 +122,7 @@ fun ConfirmDeleteDialog(title: String, text: String, onConfirm: () -> Unit, onDi
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Text(text) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Löschen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.delete)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }

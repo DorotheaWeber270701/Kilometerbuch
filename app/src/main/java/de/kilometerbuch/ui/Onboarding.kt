@@ -39,40 +39,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.kilometerbuch.R
+import de.kilometerbuch.data.nextColorIndex
 import de.kilometerbuch.ui.theme.KilometerTheme
 
-private data class GuideStep(@DrawableRes val icon: Int, val title: String, val text: String)
+private data class GuideStep(@DrawableRes val icon: Int, val title: Int, val text: Int)
 
 private val GUIDE_STEPS = listOf(
-    GuideStep(
-        R.drawable.ic_car,
-        "Willkommen beim Kilometerbuch",
-        "Behalte im Blick, wie viel du fährst, was das Tanken kostet und wann TÜV und Inspektion fällig sind. " +
-            "Alle Daten bleiben auf deinem Handy.",
-    ),
-    GuideStep(
-        R.drawable.ic_speed,
-        "Fahrten",
-        "Trag einmal im Monat ein, wie viele Kilometer du gefahren bist, und auf Wunsch den Verbrauch. " +
-            "Die Diagramme zeigen dir den Verlauf.",
-    ),
-    GuideStep(
-        R.drawable.ic_fuel,
-        "Tanken",
-        "Gib vom Tankbeleg die Liter und den Betrag ein. Den Preis pro Liter rechnet die App selbst aus.",
-    ),
-    GuideStep(
-        R.drawable.ic_event,
-        "Termine und Menü",
-        "Im Menü oben rechts findest du die Termine für HU, Inspektion und Reifenwechsel, weitere Autos, " +
-            "die Datensicherung als CSV-Datei und den Dunkelmodus.",
-    ),
+    GuideStep(R.drawable.ic_car, R.string.guide_welcome_title, R.string.guide_welcome_text),
+    GuideStep(R.drawable.ic_speed, R.string.guide_trips_title, R.string.guide_trips_text),
+    GuideStep(R.drawable.ic_fuel, R.string.guide_fuel_title, R.string.guide_fuel_text),
+    GuideStep(R.drawable.ic_event, R.string.guide_menu_title, R.string.guide_menu_text),
 )
 
 /**
@@ -95,7 +78,7 @@ fun Onboarding(onCreateCar: (CarInput) -> Unit, onImport: () -> Unit) {
             Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.weight(1f))
                 if (step < lastStep) {
-                    TextButton(onClick = { step = lastStep }) { Text("Überspringen") }
+                    TextButton(onClick = { step = lastStep }) { Text(stringResource(R.string.skip)) }
                 }
             }
 
@@ -118,7 +101,7 @@ fun Onboarding(onCreateCar: (CarInput) -> Unit, onImport: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     StepDots(count = lastStep + 1, current = step, modifier = Modifier.weight(1f))
-                    Button(onClick = { step++ }) { Text("Weiter") }
+                    Button(onClick = { step++ }) { Text(stringResource(R.string.next)) }
                 }
             }
         }
@@ -144,10 +127,10 @@ private fun GuidePage(page: GuideStep) {
             )
         }
         Spacer(Modifier.height(32.dp))
-        Text(page.title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+        Text(stringResource(page.title), style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
         Spacer(Modifier.height(12.dp))
         Text(
-            page.text,
+            stringResource(page.text),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -158,14 +141,13 @@ private fun GuidePage(page: GuideStep) {
 
 @Composable
 private fun FirstCarPage(onCreateCar: (CarInput) -> Unit, onImport: () -> Unit) {
-    val form = remember { CarFormState("", null, null) }
+    val form = remember { CarFormState("", null, null, nextColorIndex(emptyList()), null) }
     var showErrors by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Dein erstes Auto", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.first_car_title), style = MaterialTheme.typography.headlineSmall)
         Text(
-            "Gib ihm einen Namen. Kilometerstand und Baujahr kannst du auch später eintragen; " +
-                "sie helfen bei den Erinnerungen an Inspektion und Zahnriemen.",
+            stringResource(R.string.first_car_text),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -173,12 +155,12 @@ private fun FirstCarPage(onCreateCar: (CarInput) -> Unit, onImport: () -> Unit) 
         Button(
             onClick = { form.toInput(emptyList(), null)?.let(onCreateCar) ?: run { showErrors = true } },
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Los geht’s") }
+        ) { Text(stringResource(R.string.lets_go)) }
         OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth()) {
-            Text("Daten aus CSV-Datei laden")
+            Text(stringResource(R.string.load_csv))
         }
         Text(
-            "Zum Beispiel eine Sicherung, die du vorher im Menü heruntergeladen hast.",
+            stringResource(R.string.load_csv_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -187,8 +169,9 @@ private fun FirstCarPage(onCreateCar: (CarInput) -> Unit, onImport: () -> Unit) 
 
 @Composable
 private fun StepDots(count: Int, current: Int, modifier: Modifier = Modifier) {
+    val description = stringResource(R.string.step_of, current + 1, count)
     Row(
-        modifier.semantics { contentDescription = "Schritt ${current + 1} von $count" },
+        modifier.semantics { contentDescription = description },
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         repeat(count) { i ->

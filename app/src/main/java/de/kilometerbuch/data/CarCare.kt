@@ -34,13 +34,6 @@ data class CarCare(
     val brakeOn: Boolean = false,
     val lastBrakeFluid: YearMonth? = null,
     val brakeMonths: Int = 24,
-
-    val beltOn: Boolean = false,
-    val beltKm: Int = 120_000,
-    val beltYears: Int = 6,
-    /** Letzter Zahnriemenwechsel; beide null = noch nie gewechselt, dann zählen 0 km und das Baujahr. */
-    val lastBeltOdometer: Int? = null,
-    val lastBeltYear: Int? = null,
 ) {
-    val anyOn: Boolean get() = huOn || serviceOn || tiresOn || brakeOn || beltOn
+    val anyOn: Boolean get() = huOn || serviceOn || tiresOn || brakeOn
 }
